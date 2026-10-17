@@ -1,0 +1,29 @@
+manifest:
+  defaults:
+    revision: main
+  remotes:
+    - name: zmkfirmware
+      url-base: https://github.com/zmkfirmware
+    - name: caksoylar
+      url-base: https://github.com/caksoylar
+    - name: badjeff
+      url-base: https://github.com/badjeff
+    - name: elekit-official
+      url-base: https://github.com/elekit-official
+  projects:
+    - name: zmk
+      remote: zmkfirmware
+      revision: main
+      import: app/west.yml
+    - name: zmk-rgbled-widget
+      remote: caksoylar
+      revision: main
+    - name: zmk-pmw3610-driver
+      remote: badjeff
+      revision: main
+    - name: zmk_encoder
+      remote: elekit-official
+      revision: main
+      path: modules/zmk_encoder
+  self:
+    path: config
