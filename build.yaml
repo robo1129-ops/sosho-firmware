@@ -1,38 +1,30 @@
 ---
 include:
-  # ==============================
-  # R側 (Central)
-  # ==============================
-  # トラックパッド版
-  - board: xiao_ble/nrf52840/zmk
-    shield: sosho_R_trackpad rgbled_adapter
-    snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y
-    artifact-name: sosho_R_trackpad
-
-  # トラックボール版
+  # Daily build: RIGHT = Central + trackball; LEFT = Peripheral + trackpad.
+  # The central build keeps USB Studio for the first install and enables BLE GATT Studio.
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_R_trackball rgbled_adapter
     snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y
     artifact-name: sosho_R_trackball
 
-  # ==============================
-  # L側 (Peripheral)
-  # ==============================
-  # トラックパッド版
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_L_trackpad rgbled_adapter
     artifact-name: sosho_L_trackpad
 
-  # トラックボール版
+  # Alternate central module (Studio over USB + BLE remains enabled).
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_trackpad rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y
+    artifact-name: sosho_R_trackpad
+
+  # Alternate peripheral module.
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_L_trackball rgbled_adapter
     artifact-name: sosho_L_trackball
 
-  # ==============================
-  # 設定リセット用
-  # ==============================
+  # Settings reset firmware.
   - board: xiao_ble/nrf52840/zmk
     shield: settings_reset
     artifact-name: settings_reset
