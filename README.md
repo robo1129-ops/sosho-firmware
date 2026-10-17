@@ -1,43 +1,42 @@
-# SO-SHO firmware
+# SO-SHO firmware configuration
 
-This private configuration is based on the official SO-SHO unified ZMK template (https://github.com/elekit-official/unified-zmk-config-template) and keeps its GitHub Actions build workflow and hardware definitions. The official build guide (https://www.elekit.co.jp/pages/TH-601-guide.php) identifies the right side as Central and the left side as Peripheral.
+この非公開リポジトリは、公式SO-SHO templateを基にしたZMK firmware configurationです。日常構成は、右 = Central + trackball、左 = Peripheral + trackpadです。
 
-## Daily hardware variant
+## ビルド構成
 
-The explicit daily build is:
+- 日常構成: `sosho_R_trackball`（右Central） + `sosho_L_trackpad`（左Peripheral）
+- `build.yaml` は右CentralのStudio USB endpointと `CONFIG_ZMK_STUDIO=y` を維持する
+- settings reset buildと、他のtrackball / trackpad組み合わせもmatrixに残す
+- 初回導入には右CentralのUF2をUSBで一度書き込む。以後のBLE Studio利用にはStudio対応build、BLE GATT transport、`studio_unlock` bindingが必要
 
-- Right side: Central, PMW3610 trackball, artifact sosho_R_trackball.
-- Left side: Peripheral, Cirque Pinnacle/GlidePoint trackpad, artifact sosho_L_trackpad.
+## ポインティングデバイス設定
 
-The side roles must not be swapped: the right-central build carries the Studio USB/BLE transport, while the left-peripheral build does not. Alternate right-trackpad and left-trackball combinations, plus settings_reset, remain in build.yaml.
+### Trackball
 
-## Build-time sensitivity controls
+PMW3610と既存encoder moduleを維持し、`boards/shields/sosho/sosho.dtsi` の `SOSHO_TRACKBALL_CPI`、`SOSHO_TRACKBALL_XY_SCALE_NUM` / `SOSHO_TRACKBALL_XY_SCALE_DEN` を使う。値を変更したらfirmwareを再ビルドする。実機の体感値は未検証なので、Actions artifactを確認してから導入する。
 
-Edit the named values at the top of boards/shields/sosho/sosho.dtsi, then push a commit and install the newly built UF2 files. These are build-time settings; there is no safe runtime sensitivity control exposed by the current drivers.
+### Trackpad
 
-- SOSHO_TRACKBALL_CPI (default 600) sets the PMW3610 CPI through its documented cpi devicetree property.
-- SOSHO_TRACKBALL_XY_SCALE_NUM / SOSHO_TRACKBALL_XY_SCALE_DEN (default 1/1) set the rational X/Y multiplier through ZMK's zip_xy_scaler.
-- SOSHO_TRACKPAD_XY_SCALE_NUM / SOSHO_TRACKPAD_XY_SCALE_DEN (default 1/1) set the trackpad movement multiplier through the existing ZMK pointing listener path.
-- The Pinnacle sensitivity property is currently 1x. The upstream binding defines 1x as most sensitive and 4x as least sensitive; values 1x through 4x require a rebuild.
+既存のGlidePoint / pointing input pathを維持し、`SOSHO_TRACKPAD_XY_SCALE_NUM` / `SOSHO_TRACKPAD_XY_SCALE_DEN` をmovement scaleとして使う。値を変更したら再ビルドが必要で、BLE Studioの実行時設定としては扱わない。Pinnacle sensitivityは現在1xで、upstream bindingの1x〜4xを再ビルドで選べる。
 
-For example, changing a scale to 2/1 doubles movement and 1/2 halves it. Keep denominators non-zero.
+現行SO-SHO trackpad pathで安全に扱えるtap/click情報の範囲を確認するまでは、単一指のtap/clickだけを候補とする。finger count、raw contact、gesture phaseがdriverから確実に出ない場合、二指tap、二指double-tap、二指scrollを通常keyや時間判定で偽装しない。将来実装するなら、driverのcontact dataとinput processorのgesture state、テストを追加する必要がある。
 
-## ZMK Studio and BLE
+## Studio / BLEの状態
 
-The right-central variants include the upstream studio-rpc-usb-uart snippet, CONFIG_ZMK_STUDIO=y, CONFIG_ZMK_STUDIO_TRANSPORT_BLE=y, and CONFIG_ZMK_BLE=y. The BLE GATT Studio transport is therefore enabled in the central firmware configuration, while the peripheral configs only enable the Studio behavior needed by the shared keymap.
+BLE GATT Studio transportと `CONFIG_ZMK_BLE=y`、Studio unlock bindingを構成に含める。これはconfig上の準備であり、実機でのBLE接続、unlock後のkeymap read/write、Studio runtimeはこの作業では未検証である。USBは初回flashと復旧経路として残す。
 
-A one-time manual USB installation is still required: download the correct central UF2 from GitHub Actions, put the right XIAO board into its bootloader, and copy the UF2 to that board. This task did not flash or modify any physical keyboard. After that initial install, unlock Studio using the layer-3 top-left &studio_unlock binding: hold the existing &mo 3 layer key and press the top-left key. BLE Studio runtime still needs to be confirmed by the user after a real flash and connection; this repository alone cannot prove radio/runtime behavior.
+## マクロの扱い
 
-## Trackpad taps and gestures
+ZMK macro behaviorはcompile-timeのdevicetree定義であり、現行Studio keymap schemaにはマクロ定義の作成・編集・削除RPCがない。公式macro behaviorは `tap` / `press` / `release`、`wait-ms`、`tap-ms`、`pause-for-release`を扱う。したがってブラウザーeditorのマクロ名、target、`KEY|MODE|WAIT_MS`列はlocalStorageの設計データであり、このリポジトリのkeymapへ自動反映されるものではない。
 
-The current Zephyr Cirque Pinnacle driver exposes enough information for one-finger primary tap/click, so primary-tap-enable is enabled in sosho.dtsi. The driver reports that as the normal touch button path; it has not been tested on the physical keyboard here.
+ZMKのmacro sourceでwait/tapは `uint32_t`。UIの待ち時間は0〜4294967295の整数に正規化する。公式ドキュメントはBLEキー列で30ms以上のwait/tapを推奨し、Kconfigの既定値はwait 15ms、tap 30ms、behavior queue 64。実際のキー順序、長いmacroの収まり、layer / Bluetooth behaviorはcompile後の確認が必要である。
 
-Two-finger tap/double-click is not implemented. Two-finger scrolling is not implemented. Source inspection shows the current driver exposes relative X/Y and a primary-touch button, does not expose finger count or raw multi-contact data, and configures scrolling and secondary taps off. No timing trick or ordinary key press is used to simulate these gestures. A future implementation would require a driver/input processor that exposes finger count or raw contacts plus a documented gesture-to-button/scroll event path.
+## 検証手順
 
-The encoder's existing scroll behaviors remain separate from trackpad gesture scrolling.
+1. GitHub Actionsで日常構成の右Central trackball / 左Peripheral trackpad artifactが成功することを確認する
+2. 生成物のboard/shield、Studio USB endpoint、BLE設定、settings resetを確認する
+3. 一度だけUSBで導入し、`studio_unlock`、BLE接続、Studio keymap RPCを実機で確認する
+4. マクロをkeymapへcompile-timeで追加する場合は、別commitでbuildを通してからUSB/BLE運用へ進む
+5. 不具合時は直前のUF2へ戻せるようにする
 
-## Verification
-
-GitHub Actions is the source of truth for the build. The expected daily artifacts are sosho_R_trackball and sosho_L_trackpad; the other matrix entries are alternate combinations or settings reset. Runtime BLE, tap behavior, and gesture behavior remain unverified until a user performs the one-time USB flash and tests the hardware.
-
-Official references: SO-SHO guide (https://www.elekit.co.jp/pages/TH-601-guide.php), official source/template (https://github.com/elekit-official/unified-zmk-config-template), ZMK Studio (https://zmk.dev/docs/features/studio), Studio unlock behavior (https://zmk.dev/docs/keymaps/behaviors/studio-unlock), and ZMK input processors (https://zmk.dev/docs/keymaps/input-processors).
+物理キーボードの操作、flash、再flashはこの編集作業では行っていない。
