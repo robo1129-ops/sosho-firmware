@@ -9,8 +9,6 @@
 &trackball { status = "okay"; };
 &trackball_listener {
     status = "okay";
-    input-processors = <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
-                       <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>;
 };
 
 /* The central receives the left peripheral's trackpad input here. */
@@ -24,5 +22,4 @@
 &trackball_split { status = "okay"; };
 &trackball_split_listener {
     status = "okay";
-    input-processors = <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>;
 };
