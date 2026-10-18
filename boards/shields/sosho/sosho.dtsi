@@ -10,7 +10,7 @@
  * - TRACKBALL_XY_SCALE: rational scale applied by zip_xy_scaler.
  * - TRACKPAD_XY_SCALE: rational movement scale applied by zip_xy_scaler.
  */
-#define SOSHO_TRACKBALL_CPI 600
+#define SOSHO_TRACKBALL_CPI 200
 #define SOSHO_TRACKBALL_XY_SCALE_NUM 1
 #define SOSHO_TRACKBALL_XY_SCALE_DEN 1
 #define SOSHO_TRACKPAD_XY_SCALE_NUM 1
