@@ -19,6 +19,7 @@ ZIPには次の全パターンが含まれます。
 - `sosho_L_trackball`: 左 / Peripheral / トラックボール
 - `settings_reset`: 設定消去用（通常の左右ファームとして書き込まない）
 - 初回導入には右CentralのUF2をUSBで一度書き込む。以後のBLE Studio利用にはStudio対応build、BLE GATT transport、`studio_unlock` bindingが必要
+- Windows接続向けに2M PHYを無効化し、必要な環境でLE passkey入力を有効化する。これはZMK公式のWindows接続トラブルシュートに沿った設定で、接続改善を保証するものではない
 
 ## ポインティングデバイス設定
 
@@ -38,7 +39,9 @@ Web editorでは1回・2回・3回・ホールドのtap-dance定義を作成し�
 
 ## Studio / BLEの状態
 
-右Central側の通常ビルドにBLE GATT Studio transport、`CONFIG_ZMK_BLE=y`、Studio unlock bindingを構成する。左Peripheral側は左右通信専用で、ホストHIDや公式Studio RPCの終端ではない。したがって左だけをUSB接続・起動してもPCへキー入力は送れず、右Centralが起動して左右通信が成立している必要がある。左右のLEDが点いていても、右CentralとPCのホスト接続が成立した証拠にはならない。
+右Central側の通常ビルドにBLE GATT Studio transport、`CONFIG_ZMK_BLE=y`、Studio unlock bindingを構成する。左Peripheral側は左右通信専用で、ホストHIDや公式Studio RPCの終端ではない。したがって左だけをUSB接続・起動してもPCへキー入力は送れず、右Centralが起動して左右通信が成立している必要がある。左右のLEDが点いていても、右CentralとPCのホスト接続が成立した証拠にはならない。Windowsでは公式手順どおり、既存のsosho登録削除、`BT_CLR`、Bluetooth再起動、再ペアリングを行ってからStudio接続を試す。
+
+COMポートとBLEは別の通信経路である。COMポートはUSB CDC/ACMのStudio UART transport、BLEは公式GATT service transportであり、BLEをWindowsのCOMポートとして公開する設定にはならない。WebアプリではUSBをWeb Serial、無線をWeb Bluetoothとして別ボタン・別診断に分ける。
 
 Web editorには公式Studio protobuf RPCのフレーム生成・応答解析・`get_device_info` / `get_lock_state` / `get_keymap` / `set_layer_binding` / `save_changes` / 再読み取りを実装済みだが、実機でのBLE接続、unlock後のkeymap read/write、Studio runtimeは`NOT_VERIFIED`である。USBは初回flashと復旧経路として残す。ZMK公式のBLE Web appはLinux向け、Windows/macOSはnative app向けの説明なので、Windows Chromeからの公式Studio GATT接続はファームウェアだけで解決できる問題とは断定しない。
 
