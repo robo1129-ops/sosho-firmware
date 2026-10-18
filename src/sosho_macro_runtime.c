@@ -41,6 +41,9 @@
 #define SOSHO_OP_SET 4
 #define SOSHO_OP_DELETE 5
 #define SOSHO_OP_RUN 6
+#define SOSHO_OP_SET_BEGIN 7
+#define SOSHO_OP_SET_CHUNK 8
+#define SOSHO_OP_SET_COMMIT 9
 
 #define SOSHO_STATUS_OK 0
 #define SOSHO_STATUS_BAD_FRAME 1
@@ -54,11 +57,18 @@
 #define SOSHO_MAX_STEPS 8
 #define SOSHO_MAX_WAIT_MS 60000U
 #define SOSHO_STEP_SIZE 7
+#define SOSHO_WIRE_PAYLOAD_MAX 8
+#define SOSHO_CHUNK_DATA 3
 
 #define SOSHO_KEY_PRESS_BEHAVIOR DEVICE_DT_NAME(DT_INST(0, zmk_behavior_key_press))
 
 static uint8_t macro_blob[SOSHO_MAX_MACROS][SOSHO_MAX_PAYLOAD];
 static uint16_t macro_blob_len[SOSHO_MAX_MACROS];
+static uint8_t pending_blob[SOSHO_MAX_PAYLOAD];
+static uint16_t pending_blob_len;
+static uint16_t pending_blob_received;
+static uint8_t pending_blob_id;
+static bool pending_blob_active;
 static bool studio_unlocked;
 static uint8_t response[12 + SOSHO_MAX_PAYLOAD];
 static uint16_t response_len;
@@ -241,11 +251,29 @@ static ssize_t command_write(struct bt_conn *conn, const struct bt_gatt_attr *at
     } else if (!studio_unlocked) {
         send_response(conn, op, txid, SOSHO_STATUS_AUTH_REQUIRED, NULL, 0);
     } else if (op == SOSHO_OP_GET) {
-        if (payload_len != 1 || payload[0] >= SOSHO_MAX_MACROS) {
+        if ((payload_len != 1 && payload_len != 3) || payload[0] >= SOSHO_MAX_MACROS) {
             send_response(conn, op, txid, SOSHO_STATUS_BAD_VALUE, NULL, 0);
         } else {
             uint8_t id = payload[0];
-            send_response(conn, op, txid, SOSHO_STATUS_OK, macro_blob[id], macro_blob_len[id]);
+            if (payload_len == 1) {
+                send_response(conn, op, txid, SOSHO_STATUS_OK, macro_blob[id], macro_blob_len[id]);
+            } else {
+                uint16_t offset = sys_get_le16(&payload[1]);
+                uint16_t total = macro_blob_len[id];
+                if (offset > total) {
+                    send_response(conn, op, txid, SOSHO_STATUS_BAD_VALUE, NULL, 0);
+                } else {
+                    uint16_t remaining = total - offset;
+                    uint8_t chunk = (uint8_t)MIN(remaining, SOSHO_CHUNK_DATA);
+                    uint8_t response_data[5 + SOSHO_CHUNK_DATA] = {id, 0, 0, 0, 0, 0, 0, 0};
+                    sys_put_le16(offset, &response_data[1]);
+                    sys_put_le16(total, &response_data[3]);
+                    if (chunk > 0) {
+                        memcpy(&response_data[5], &macro_blob[id][offset], chunk);
+                    }
+                    send_response(conn, op, txid, SOSHO_STATUS_OK, response_data, 5 + chunk);
+                }
+            }
         }
     } else if (op == SOSHO_OP_SET) {
         if (payload_len < 1 || !valid_macro_blob(&payload[1], payload_len - 1, payload[0])) {
@@ -257,6 +285,45 @@ static ssize_t command_write(struct bt_conn *conn, const struct bt_gatt_attr *at
             macro_blob[id][0] = id;
             macro_blob_len[id] = blob_len;
             int err = settings_save_one(macro_settings_keys[id], macro_blob[id], blob_len);
+            send_response(conn, op, txid, err ? SOSHO_STATUS_BAD_VALUE : SOSHO_STATUS_OK, NULL, 0);
+        }
+    } else if (op == SOSHO_OP_SET_BEGIN) {
+        if (payload_len != 3 || payload[0] >= SOSHO_MAX_MACROS) {
+            send_response(conn, op, txid, SOSHO_STATUS_BAD_VALUE, NULL, 0);
+        } else {
+            uint16_t total = sys_get_le16(&payload[1]);
+            if (total < 4 || total > SOSHO_MAX_PAYLOAD) {
+                send_response(conn, op, txid, SOSHO_STATUS_TOO_LARGE, NULL, 0);
+            } else {
+                pending_blob_id = payload[0];
+                pending_blob_len = total;
+                pending_blob_received = 0;
+                pending_blob_active = true;
+                send_response(conn, op, txid, SOSHO_STATUS_OK, NULL, 0);
+            }
+        }
+    } else if (op == SOSHO_OP_SET_CHUNK) {
+        if (!pending_blob_active || payload_len < 4 || payload_len > 3 + SOSHO_CHUNK_DATA ||
+            payload[0] != pending_blob_id || sys_get_le16(&payload[1]) != pending_blob_received ||
+            (uint16_t)(pending_blob_received + payload_len - 3) > pending_blob_len) {
+            send_response(conn, op, txid, SOSHO_STATUS_BAD_VALUE, NULL, 0);
+        } else {
+            uint16_t chunk_len = payload_len - 3;
+            memcpy(&pending_blob[pending_blob_received], &payload[3], chunk_len);
+            pending_blob_received += chunk_len;
+            send_response(conn, op, txid, SOSHO_STATUS_OK, NULL, 0);
+        }
+    } else if (op == SOSHO_OP_SET_COMMIT) {
+        if (!pending_blob_active || payload_len != 1 || payload[0] != pending_blob_id ||
+            pending_blob_received != pending_blob_len ||
+            !valid_macro_blob(pending_blob, pending_blob_len, pending_blob_id)) {
+            send_response(conn, op, txid, SOSHO_STATUS_BAD_VALUE, NULL, 0);
+        } else {
+            uint8_t id = pending_blob_id;
+            memcpy(macro_blob[id], pending_blob, pending_blob_len);
+            macro_blob_len[id] = pending_blob_len;
+            int err = settings_save_one(macro_settings_keys[id], macro_blob[id], macro_blob_len[id]);
+            pending_blob_active = false;
             send_response(conn, op, txid, err ? SOSHO_STATUS_BAD_VALUE : SOSHO_STATUS_OK, NULL, 0);
         }
     } else if (op == SOSHO_OP_DELETE) {
@@ -295,7 +362,7 @@ BT_GATT_SERVICE_DEFINE(
 
 static void send_response(struct bt_conn *conn, uint8_t op, uint8_t txid, uint8_t status,
                           const uint8_t *data, uint16_t len) {
-    if (len > SOSHO_MAX_PAYLOAD - 4) {
+    if (len > SOSHO_WIRE_PAYLOAD_MAX) {
         len = 0;
         status = SOSHO_STATUS_TOO_LARGE;
     }
