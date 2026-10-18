@@ -53,6 +53,8 @@ Web editorには公式Studio protobuf RPCのフレーム生成・応答解析・
 
 PINを要求する特殊なホスト向けの予備として、Layer 3に数字入力を用意しています。通常レイヤーで右側のLayer 3キーを押している間、右手側の数字キーを使い、右下のキーでENTERを送信できます。通常のWindowsペアリングではPIN入力を使わない構成です。
 
+Windowsで「接続済みだがキーやポインティング入力が届かない」状態を避けるため、中央側では `CONFIG_BT_GATT_ENFORCE_SUBSCRIPTION=n` を設定しています。また、split中央のBattery Level代理通知・取得を無効にし、左右入力のposition-state GATT探索を優先します。ZMKのsplit関連既知事例では、Battery Level取得を有効にした探索中にPeripheralのposition-state characteristicが見つからず、左右入力が届かなくなる症状が報告されています。
+
 Web editorでは、BLE接続後に「BLEへ保存」「BLEから読み込む」「実行」を使います。キーボード側のBluetoothペアリングと暗号化接続が必要です。MIDIは仕様・UI・プロトコルに含めません。
 
 ## 検証手順
