@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 /*
@@ -52,7 +53,7 @@
 #define SOSHO_STATUS_TOO_LARGE 4
 #define SOSHO_STATUS_BAD_VALUE 5
 
-#define SOSHO_MAX_MACROS 8
+#define SOSHO_MAX_MACROS 16
 #define SOSHO_MAX_PAYLOAD 224
 #define SOSHO_MAX_STEPS 8
 #define SOSHO_MAX_WAIT_MS 60000U
@@ -76,6 +77,8 @@ static uint16_t response_len;
 static const char *const macro_settings_keys[SOSHO_MAX_MACROS] = {
     "sosho_macro/0", "sosho_macro/1", "sosho_macro/2", "sosho_macro/3",
     "sosho_macro/4", "sosho_macro/5", "sosho_macro/6", "sosho_macro/7",
+    "sosho_macro/8", "sosho_macro/9", "sosho_macro/10", "sosho_macro/11",
+    "sosho_macro/12", "sosho_macro/13", "sosho_macro/14", "sosho_macro/15",
 };
 
 static uint16_t crc16(const uint8_t *data, size_t len) {
@@ -92,11 +95,19 @@ static uint16_t crc16(const uint8_t *data, size_t len) {
 }
 
 static int macro_id_from_name(const char *name) {
-    if (name == NULL || name[0] < '0' || name[0] >= ('0' + SOSHO_MAX_MACROS) || name[1] != '\0') {
+    char *end = NULL;
+    unsigned long value;
+
+    if (name == NULL || name[0] == '\0') {
         return -EINVAL;
     }
 
-    return name[0] - '0';
+    value = strtoul(name, &end, 10);
+    if (end == name || *end != '\0' || value >= SOSHO_MAX_MACROS) {
+        return -EINVAL;
+    }
+
+    return (int)value;
 }
 
 static int settings_set(const char *name, size_t len_rd, settings_read_cb read_cb, void *cb_arg) {

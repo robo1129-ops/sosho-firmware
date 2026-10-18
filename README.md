@@ -39,7 +39,7 @@ Web editorでは1回・2回・3回・ホールドのtap-dance定義を作成し�
 
 ## Studio / BLEの状態
 
-右Central側の通常ビルドにBLE GATT Studio transport、`CONFIG_ZMK_BLE=y`、Studio unlock bindingを構成する。左Peripheral側は左右通信専用で、ホストHIDや公式Studio RPCの終端ではない。したがって左だけをUSB接続・起動してもPCへキー入力は送れず、右Centralが起動して左右通信が成立している必要がある。左右のLEDが点いていても、右CentralとPCのホスト接続が成立した証拠にはならない。Windowsでは公式手順どおり、既存のsosho登録削除、`BT_CLR`、Bluetooth再起動、再ペアリングを行ってからStudio接続を試す。
+右Central側の通常ビルドにBLE GATT Studio transport、`CONFIG_ZMK_BLE=y`、Studio unlock bindingを構成する。さらに公式のWindows向け安定化設定 `CONFIG_ZMK_BLE_EXPERIMENTAL_FEATURES=y` を有効にし、2M PHYを避けてSecure Connection/passkey系を使う。設定変更後は既存ペアリングの削除と再ペアリングが必要になる。左Peripheral側は左右通信専用で、ホストHIDや公式Studio RPCの終端ではない。したがって左だけをUSB接続・起動してもPCへキー入力は送れず、右Centralが起動して左右通信が成立している必要がある。左右のLEDが点いていても、右CentralとPCのホスト接続が成立した証拠にはならない。Windowsでは公式手順どおり、既存のsosho登録削除、`BT_CLR`、Bluetooth再起動、再ペアリングを行ってからStudio接続を試す。
 
 COMポートとBLEは別の通信経路である。COMポートはUSB CDC/ACMのStudio UART transport、BLEは公式GATT service transportであり、BLEをWindowsのCOMポートとして公開する設定にはならない。WebアプリではUSBをWeb Serial、無線をWeb Bluetoothとして別ボタン・別診断に分ける。
 
@@ -49,7 +49,7 @@ Web editorには公式Studio protobuf RPCのフレーム生成・応答解析・
 
 公式ZMK Studio RPCにはマクロ定義の作成・編集・削除機能がないため、SO-SHO専用のBLE GATTサービスを追加しています。初回だけこのBLE対応版ファームウェアをUSBで書き込みます。その後は公開Web editorから暗号化されたBLE接続でマクロを保存・読み戻し・実行でき、マクロ編集のたびに再ビルドする必要はありません。
 
-保存形式は、マクロID、名前、割り当て先、最大8ステップの `KEY|MODE|WAIT_MS` 列です。`MODE` は `tap` / `press` / `release`、待ち時間は0〜60000ミリ秒です。保存先はZephyr Settingsで、電源再投入後も保持されます。BLEサービスはバージョン、長さ、CRC、応答ステータス、暗号化リンク、最大サイズを検証します。
+保存形式は、Macro 0〜15の16スロット、名前、割り当て先、最大8ステップの `KEY|MODE|WAIT_MS` 列です。`MODE` は `tap` / `press` / `release`、待ち時間は0〜60000ミリ秒です。保存先はZephyr Settingsで、電源再投入後も保持されます。BLEサービスはバージョン、長さ、CRC、応答ステータス、暗号化リンク、最大サイズを検証します。
 
 Web editorでは、BLE接続後に「BLEへ保存」「BLEから読み込む」「実行」を使います。キーボード側のBluetoothペアリングと暗号化接続が必要です。MIDIは仕様・UI・プロトコルに含めません。
 
