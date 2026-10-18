@@ -37,7 +37,9 @@ Web editorでは1回・2回・3回・ホールドのtap-dance定義を作成し�
 
 ## Studio / BLEの状態
 
-BLE GATT Studio transportと `CONFIG_ZMK_BLE=y`、Studio unlock bindingを構成に含める。これはconfig上の準備であり、実機でのBLE接続、unlock後のkeymap read/write、Studio runtimeはこの作業では未検証である。USBは初回flashと復旧経路として残す。
+右Central側の通常ビルドにBLE GATT Studio transport、`CONFIG_ZMK_BLE=y`、Studio unlock bindingを構成する。左Peripheral側は左右通信専用で、ホストHIDや公式Studio RPCの終端ではない。したがって左だけをUSB接続・起動してもPCへキー入力は送れず、右Centralが起動して左右通信が成立している必要がある。左右のLEDが点いていても、右CentralとPCのホスト接続が成立した証拠にはならない。
+
+Web editorには公式Studio protobuf RPCのフレーム生成・応答解析・`get_device_info` / `get_lock_state` / `get_keymap` / `set_layer_binding` / `save_changes` / 再読み取りを実装済みだが、実機でのBLE接続、unlock後のkeymap read/write、Studio runtimeは`NOT_VERIFIED`である。USBは初回flashと復旧経路として残す。ZMK公式のBLE Web appはLinux向け、Windows/macOSはnative app向けの説明なので、Windows Chromeからの公式Studio GATT接続はファームウェアだけで解決できる問題とは断定しない。
 
 ## マクロの扱い
 
@@ -51,8 +53,9 @@ Web editorでは、BLE接続後に「BLEへ保存」「BLEから読み込む」�
 
 1. GitHub Actionsで日常構成の右Central trackball / 左Peripheral trackpad artifactが成功することを確認する
 2. 生成物のboard/shield、Studio USB endpoint、BLE設定、settings resetを確認する
-3. 一度だけUSBで導入し、Bluetoothペアリング、暗号化接続、BLEマクロの保存・読み戻し・実行を実機で確認する
-4. マクロ編集のたびに再ビルドせず、Web editorから保存できることを確認する
-5. 不具合時は直前のUF2へ戻せるようにする
+3. 一度だけUSBで導入し、右Centralがホストに接続できること、左Peripheralのキーが右Central経由で入力されることを実機で確認する
+4. 公式Studio RPCのkeymap read/write/re-readと、専用BLEマクロの保存・読み戻し・実行を実機で確認する
+5. マクロ編集のたびに再ビルドせず、Web editorから保存できることを確認する
+6. 不具合時は直前のUF2へ戻せるようにする
 
 このリポジトリのソース変更とActionsビルド以外の物理キーボード操作、flash、再flash、Bluetoothペアリングは行っていない。実機でのBLE送受信は、初回ファームウェア導入後にユーザー側で確認する必要がある。
