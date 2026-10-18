@@ -5,6 +5,7 @@
 ## ビルド構成
 
 - 日常構成: `sosho_R_trackball`（右Central） + `sosho_L_trackpad`（左Peripheral）
+- 無操作時の自動スリープは左右すべて `CONFIG_ZMK_IDLE_SLEEP_TIMEOUT=3600000`（1時間）に設定する
 - `build.yaml` は右CentralのStudio USB endpointと `CONFIG_ZMK_STUDIO=y` を維持する
 - settings reset buildと、他のtrackball / trackpad組み合わせもmatrixに残す
 - 最新成功ビルドの全バリエーションZIP: https://github.com/robo1129-ops/sosho-firmware/releases/download/latest/sosho-firmware-latest.zip
