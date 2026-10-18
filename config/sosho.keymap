@@ -63,6 +63,8 @@ keymap {
             &kp LSHFT  &kp Z   &kp X  &kp C  &kp V  &kp B      &kp N  &kp M  &kp COMMA  &kp DOT  &kp SLASH &kp LSHFT
             &kp ESC    &kp LALT              &mo 2  &kp SPACE  &mo 1  &kp LA(GRAVE)              &mo 3     &kp LGUI
         >;
+        // Layer 0's right thumb MO(3) key exposes the Layer 3 pairing/numeric
+        // fallback without changing the normal typing layer.
         //&ec_ms_lとrは、上のビヘイビアで作ったもの。
         sensor-bindings = <&ec_ms_l SCRL_LEFT SCRL_RIGHT &ec_ms_r SCRL_DOWN SCRL_UP>;
     };
