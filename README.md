@@ -31,6 +31,10 @@ PMW3610と既存encoder moduleを維持し、`boards/shields/sosho/sosho.dtsi` �
 
 現行SO-SHO trackpad pathで安全に扱えるtap/click情報の範囲を確認するまでは、単一指のtap/clickだけを候補とする。finger count、raw contact、gesture phaseがdriverから確実に出ない場合、二指tap、二指double-tap、二指scrollを通常keyや時間判定で偽装しない。将来実装するなら、driverのcontact dataとinput processorのgesture state、テストを追加する必要がある。
 
+### Tap dance
+
+全4モジュール構成でZMK標準のtap-dance behaviorを有効にしています。Web editorでは1回・2回・3回・ホールドの定義を作成して物理キーへドラッグできます。日本語JISキーを含む通常キーとtap-dance定義はブラウザー側へ保存されます。tap-danceの実機キーマップへの反映は、現行のBLEマクロサービスとは別のZMK keymap bindingとして扱うため、定義をファームウェアへ組み込む場合はビルドが必要です。
+
 ## Studio / BLEの状態
 
 BLE GATT Studio transportと `CONFIG_ZMK_BLE=y`、Studio unlock bindingを構成に含める。これはconfig上の準備であり、実機でのBLE接続、unlock後のkeymap read/write、Studio runtimeはこの作業では未検証である。USBは初回flashと復旧経路として残す。
