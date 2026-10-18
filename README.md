@@ -7,6 +7,16 @@
 - 日常構成: `sosho_R_trackball`（右Central） + `sosho_L_trackpad`（左Peripheral）
 - `build.yaml` は右CentralのStudio USB endpointと `CONFIG_ZMK_STUDIO=y` を維持する
 - settings reset buildと、他のtrackball / trackpad組み合わせもmatrixに残す
+- 最新成功ビルドの全バリエーションZIP: https://github.com/robo1129-ops/sosho-firmware/releases/download/latest/sosho-firmware-latest.zip
+- ZIPを作るActions: https://github.com/robo1129-ops/sosho-firmware/actions/workflows/package-firmware.yml
+
+ZIPには次の全パターンが含まれます。
+
+- `sosho_R_trackball`: 右 / Central / トラックボール
+- `sosho_L_trackpad`: 左 / Peripheral / トラックパッド
+- `sosho_R_trackpad`: 右 / Central / トラックパッド
+- `sosho_L_trackball`: 左 / Peripheral / トラックボール
+- `settings_reset`: 設定消去用（通常の左右ファームとして書き込まない）
 - 初回導入には右CentralのUF2をUSBで一度書き込む。以後のBLE Studio利用にはStudio対応build、BLE GATT transport、`studio_unlock` bindingが必要
 
 ## ポインティングデバイス設定

@@ -1,0 +1,75 @@
+name: Package firmware ZIP
+
+on:
+  workflow_run:
+    workflows: ["Build ZMK firmware"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  package:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all firmware variants
+        uses: actions/download-artifact@v4
+        with:
+          name: firmware
+          path: dist/firmware
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add variant manifest
+        env:
+          BUILD_SHA: ${{ github.event.workflow_run.head_sha }}
+          BUILD_RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          cat > dist/README.txt <<EOF
+          SO-SHO custom firmware
+
+          Build commit: ${BUILD_SHA}
+          Build run: https://github.com/${GITHUB_REPOSITORY}/actions/runs/${BUILD_RUN}
+
+          Normal pair:
+            sosho_R_trackball = right / Central / trackball
+            sosho_L_trackpad  = left / Peripheral / trackpad
+
+          Alternate pair:
+            sosho_R_trackpad  = right / Central / trackpad
+            sosho_L_trackball = left / Peripheral / trackball
+
+          settings_reset is a separate recovery image. Do not flash it as a normal half.
+          The ZIP contains every matrix variant from build.yaml. Select the UF2 matching
+          the side and pointing-device module before flashing.
+          EOF
+
+      - name: Create firmware ZIP
+        run: |
+          cd dist
+          zip -r ../sosho-firmware-latest.zip .
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sosho-firmware-zip
+          path: sosho-firmware-latest.zip
+          retention-days: 90
+
+      - name: Publish stable latest release asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if ! gh release view latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create latest \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$BUILD_SHA" \
+              --title "SO-SHO firmware (latest)" \
+              --notes "All SO-SHO firmware variants from the latest successful build."
+          fi
+          gh release upload latest sosho-firmware-latest.zip \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
