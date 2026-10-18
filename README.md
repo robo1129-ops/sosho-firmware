@@ -33,7 +33,7 @@ PMW3610と既存encoder moduleを維持し、`boards/shields/sosho/sosho.dtsi` �
 
 ### Tap dance
 
-全4モジュール構成でZMK標準のtap-dance behaviorを有効にしています。Web editorでは1回・2回・3回・ホールドの定義を作成して物理キーへドラッグできます。日本語JISキーを含む通常キーとtap-dance定義はブラウザー側へ保存されます。tap-danceの実機キーマップへの反映は、現行のBLEマクロサービスとは別のZMK keymap bindingとして扱うため、定義をファームウェアへ組み込む場合はビルドが必要です。
+Web editorでは1回・2回・3回・ホールドのtap-dance定義を作成して物理キーへドラッグできます。日本語JISキーを含む通常キーとtap-dance定義はブラウザー側へ保存されます。tap-danceの実機キーマップへの反映は、現行のBLEマクロサービスとは別のZMK keymap bindingとして扱うため、定義をファームウェアへ組み込む場合はビルドが必要です。
 
 ## Studio / BLEの状態
 
