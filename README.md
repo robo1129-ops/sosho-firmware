@@ -1,6 +1,6 @@
 # SO-SHO firmware configuration
 
-この非公開リポジトリは、公式SO-SHO templateを基にしたZMK firmware configurationです。日常構成は、右 = Central + trackball、左 = Peripheral + trackpadです。
+このリポジトリは、公式SO-SHO templateを基にしたZMK firmware configurationです。日常構成は、右 = Central + trackball、左 = Peripheral + trackpadです。
 
 ## ビルド構成
 
@@ -27,16 +27,18 @@ BLE GATT Studio transportと `CONFIG_ZMK_BLE=y`、Studio unlock bindingを構成
 
 ## マクロの扱い
 
-ZMK macro behaviorはcompile-timeのdevicetree定義であり、現行Studio keymap schemaにはマクロ定義の作成・編集・削除RPCがない。公式macro behaviorは `tap` / `press` / `release`、`wait-ms`、`tap-ms`、`pause-for-release`を扱う。したがってブラウザーeditorのマクロ名、target、`KEY|MODE|WAIT_MS`列はlocalStorageの設計データであり、このリポジトリのkeymapへ自動反映されるものではない。
+公式ZMK Studio RPCにはマクロ定義の作成・編集・削除機能がないため、SO-SHO専用のBLE GATTサービスを追加しています。初回だけこのBLE対応版ファームウェアをUSBで書き込みます。その後は公開Web editorから暗号化されたBLE接続でマクロを保存・読み戻し・実行でき、マクロ編集のたびに再ビルドする必要はありません。
 
-ZMKのmacro sourceでwait/tapは `uint32_t`。UIの待ち時間は0〜4294967295の整数に正規化する。公式ドキュメントはBLEキー列で30ms以上のwait/tapを推奨し、Kconfigの既定値はwait 15ms、tap 30ms、behavior queue 64。実際のキー順序、長いmacroの収まり、layer / Bluetooth behaviorはcompile後の確認が必要である。
+保存形式は、マクロID、名前、割り当て先、最大8ステップの `KEY|MODE|WAIT_MS` 列です。`MODE` は `tap` / `press` / `release`、待ち時間は0〜60000ミリ秒です。保存先はZephyr Settingsで、電源再投入後も保持されます。BLEサービスはバージョン、長さ、CRC、応答ステータス、暗号化リンク、最大サイズを検証します。
+
+Web editorでは、BLE接続後に「BLEへ保存」「BLEから読み込む」「実行」を使います。キーボード側のBluetoothペアリングと暗号化接続が必要です。MIDIは仕様・UI・プロトコルに含めません。
 
 ## 検証手順
 
 1. GitHub Actionsで日常構成の右Central trackball / 左Peripheral trackpad artifactが成功することを確認する
 2. 生成物のboard/shield、Studio USB endpoint、BLE設定、settings resetを確認する
-3. 一度だけUSBで導入し、`studio_unlock`、BLE接続、Studio keymap RPCを実機で確認する
-4. マクロをkeymapへcompile-timeで追加する場合は、別commitでbuildを通してからUSB/BLE運用へ進む
+3. 一度だけUSBで導入し、Bluetoothペアリング、暗号化接続、BLEマクロの保存・読み戻し・実行を実機で確認する
+4. マクロ編集のたびに再ビルドせず、Web editorから保存できることを確認する
 5. 不具合時は直前のUF2へ戻せるようにする
 
-物理キーボードの操作、flash、再flashはこの編集作業では行っていない。
+このリポジトリのソース変更とActionsビルド以外の物理キーボード操作、flash、再flash、Bluetoothペアリングは行っていない。実機でのBLE送受信は、初回ファームウェア導入後にユーザー側で確認する必要がある。
