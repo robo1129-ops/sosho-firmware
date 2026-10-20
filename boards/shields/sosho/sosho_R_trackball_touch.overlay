@@ -1,0 +1,24 @@
+#include "sosho_R.dtsi"
+
+/*
+ * Official-driver-compatible touch profile.
+ * Cirque Pinnacle emits INPUT_BTN_TOUCH for the primary tap while in
+ * relative mode. ZMK's input listener maps that event to mouse button 1,
+ * so a held contact can drag while movement events continue to arrive.
+ */
+&spi1 { status = "okay"; };
+&trackball { status = "okay"; };
+&trackball_listener {
+    status = "okay";
+};
+
+/* Receive the left Pinnacle events on the central. */
+&glidepoint_split { status = "okay"; };
+&glidepoint_split_listener {
+    status = "okay";
+};
+
+&trackball_split { status = "okay"; };
+&trackball_split_listener {
+    status = "okay";
+};

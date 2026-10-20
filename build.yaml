@@ -1,28 +1,42 @@
 ---
 include:
   # Daily build: RIGHT = Central + trackball; LEFT = Peripheral + trackpad.
-  # The central build keeps USB Studio for the first install and enables BLE GATT Studio.
+  # PC-side Studio is USB-only. BLE remains enabled for the split link and
+  # normal wireless keyboard operation.
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_R_trackball rgbled_adapter
     snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=n
     artifact-name: sosho_R_trackball
 
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_L_trackpad rgbled_adapter
     artifact-name: sosho_L_trackpad
 
-  # Alternate central module (Studio over USB + BLE remains enabled).
+  # Alternate central module (Studio over USB).
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_R_trackpad rgbled_adapter
     snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=n
     artifact-name: sosho_R_trackpad
 
   # Alternate peripheral module.
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_L_trackball rgbled_adapter
     artifact-name: sosho_L_trackball
+
+  # Official-driver-compatible touch profile. The Cirque Pinnacle's primary
+  # tap bit is exposed as INPUT_BTN_TOUCH; ZMK maps that to mouse button 1,
+  # which provides tap, hold-and-move drag, and host-side double-click.
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_trackball_touch rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=n
+    artifact-name: sosho_R_trackball_touch
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackpad_touch rgbled_adapter
+    artifact-name: sosho_L_trackpad_touch
 
   # Settings reset firmware.
   - board: xiao_ble/nrf52840/zmk

@@ -1,0 +1,18 @@
+#include "sosho_L.dtsi"
+
+/*
+ * Official Zephyr Cirque Pinnacle driver touch profile.
+ * The hardware is single-touch: primary taps are available, two quick taps
+ * are interpreted as a double-click by the host, and a held contact plus
+ * movement is drag-and-drop. Multi-finger gestures are not claimed here.
+ */
+&spi0 { status = "okay"; };
+&glidepoint {
+    status = "okay";
+    invert-x;
+    primary-tap-enable;
+};
+&glidepoint_split {
+    status = "okay";
+    device = <&glidepoint>;
+};
