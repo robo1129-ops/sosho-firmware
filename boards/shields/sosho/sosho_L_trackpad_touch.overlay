@@ -10,7 +10,7 @@
 &glidepoint {
     status = "okay";
     invert-x;
-    primary-tap-enable;
+    /* primary-tap-enable is declared once in sosho.dtsi. */
 };
 &glidepoint_split {
     status = "okay";
