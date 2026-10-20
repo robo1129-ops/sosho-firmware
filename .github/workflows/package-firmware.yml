@@ -41,6 +41,13 @@ jobs:
             sosho_R_trackpad  = right / Central / trackpad
             sosho_L_trackball = left / Peripheral / trackball
 
+          Touch profile pair (official Cirque Pinnacle primary tap/drag):
+            sosho_R_trackball_touch = right / Central / trackball
+            sosho_L_trackpad_touch  = left / Peripheral / trackpad
+
+          The touch pair supports primary tap, held-contact drag, and host-side
+          double-click interpretation. It does not add multi-finger gestures.
+
           settings_reset is a separate recovery image. Do not flash it as a normal half.
           The ZIP contains every matrix variant from build.yaml. Select the UF2 matching
           the side and pointing-device module before flashing.
