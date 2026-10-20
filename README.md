@@ -1,5 +1,11 @@
 # SO-SHO firmware configuration
 
+The manufacturer circuit diagrams confirm the sensor wiring used by this
+shield. In particular, trackpad selection is SPI-SS1/P1.05 and trackball
+selection is SPI-SS2/P0.31; the shared SPI bus is SCK/P1.13, MOSI/P1.15,
+MISO/P1.14, with data-ready on P1.07. The trackball overlay uses those
+verified pins. Source: <https://elekit.co.jp/support/faq/5255>.
+
 このリポジトリは、公式SO-SHO templateを基にしたZMK firmware configurationです。日常構成は、右 = Central + trackball、左 = Peripheral + trackpadです。
 
 ## ビルド構成
