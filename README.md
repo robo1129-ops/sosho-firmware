@@ -19,7 +19,7 @@ verified pins. Source: <https://elekit.co.jp/support/faq/5255>.
 
 ZIPには次の全パターンが含まれます。
 
-- `sosho_R_trackball`: 右 / Central / トラックボール
+- `sosho_R_trackball`: 右 / Central / トラックボール（PMW3610のSPI-SS2/P1.03、motion/data-readyはアクティブLow）
 - `sosho_L_trackpad`: 左 / Peripheral / トラックパッド
 - `sosho_R_trackpad`: 右 / Central / トラックパッド
 - `sosho_L_trackball`: 左 / Peripheral / トラックボール

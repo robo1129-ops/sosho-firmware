@@ -206,7 +206,8 @@
         compatible = "pixart,pmw3610-alt";
         reg = <0>;
         spi-max-frequency = <2000000>;
-        irq-gpios = <&gpio1 7 (GPIO_ACTIVE_HIGH)>;      // Sample-LOW PRODUCT-HIGH
+        /* PMW3610 motion/data-ready is active-low (pull-up required). */
+        irq-gpios = <&gpio1 7 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
         cpi = <SOSHO_TRACKBALL_CPI>;
         evt-type = <INPUT_EV_REL>;
         x-input-code = <INPUT_REL_Y>;
