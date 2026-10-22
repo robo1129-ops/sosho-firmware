@@ -45,8 +45,11 @@ jobs:
             sosho_R_trackball_touch = right / Central / trackball
             sosho_L_trackpad_touch  = left / Peripheral / trackpad
 
+          The left trackpad uses Pinnacle sensitivity 2x and a 1/2 movement
+          scale on the central ZMK input listener for finer low-speed control.
           The touch pair supports primary tap, held-contact drag, and host-side
-          double-click interpretation. It does not add multi-finger gestures.
+          double-click interpretation. It remains ZMK Studio compatible over
+          the right central USB endpoint. It does not add multi-finger gestures.
 
           settings_reset is a separate recovery image. Do not flash it as a normal half.
           The ZIP contains every matrix variant from build.yaml. Select the UF2 matching

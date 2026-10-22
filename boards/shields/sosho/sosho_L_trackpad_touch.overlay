@@ -10,6 +10,9 @@
 &glidepoint {
     status = "okay";
     invert-x;
+    /* 2x is the middle sensitivity setting in the official Pinnacle
+     * binding: it reduces noise without disabling primary taps. */
+    sensitivity = "2x";
     /* primary-tap-enable is declared once in sosho.dtsi. */
 };
 &glidepoint_split {

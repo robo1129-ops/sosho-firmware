@@ -9,12 +9,15 @@
  * - TRACKBALL_CPI: PMW3610 CPI supported by the official module.
  * - TRACKBALL_XY_SCALE: rational scale applied by zip_xy_scaler.
  * - TRACKPAD_XY_SCALE: rational movement scale applied by zip_xy_scaler.
+ *   The default 1/2 scale keeps low-speed pointer movement granular while
+ *   preserving fractional motion with the central listener's remainder
+ *   accumulator.
  */
 #define SOSHO_TRACKBALL_CPI 200
 #define SOSHO_TRACKBALL_XY_SCALE_NUM 1
 #define SOSHO_TRACKBALL_XY_SCALE_DEN 1
 #define SOSHO_TRACKPAD_XY_SCALE_NUM 1
-#define SOSHO_TRACKPAD_XY_SCALE_DEN 1
+#define SOSHO_TRACKPAD_XY_SCALE_DEN 2
 
 &physical_layout0 {
     transform = <&default_transform>;

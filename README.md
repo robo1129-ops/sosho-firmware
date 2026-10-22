@@ -36,9 +36,9 @@ PMW3610と既存encoder moduleを維持し、`boards/shields/sosho/sosho.dtsi` �
 
 ### Trackpad
 
-既存のGlidePoint / pointing input pathを維持し、`SOSHO_TRACKPAD_XY_SCALE_NUM` / `SOSHO_TRACKPAD_XY_SCALE_DEN` をmovement scaleとして使う。値を変更したら再ビルドが必要で、Webアプリの実行時設定としては扱わない。Pinnacle sensitivityは現在1xで、upstream bindingの1x〜4xを再ビルドで選べる。
+既存のGlidePoint / pointing input pathを維持し、`SOSHO_TRACKPAD_XY_SCALE_NUM` / `SOSHO_TRACKPAD_XY_SCALE_DEN` をmovement scaleとして使う。現在の精度重視設定は `1/2` で、中央側のZMK input listenerが分数の余りを保持するため、低速移動の入力を丸め落とさない。値を変更したら再ビルドが必要で、Webアプリの実行時設定としては扱わない。Pinnacle sensitivityは標準・touchプロファイルとも `2x` にしている。
 
-公式ZephyrのCirque Pinnacleドライバに `primary-tap-enable` を設定すると、単一指の接触が `INPUT_BTN_TOUCH` として出力され、ZMKの入力リスナーが左クリックとして扱う。これにより、一次タップ、接触を保持した移動によるドラッグ、2回のタップをホストOSがダブルクリックとして解釈する動作を、専用の独自プロトコルなしで利用できる。touchプロファイルではこの設定をoverlayに明示している。
+公式ZephyrのCirque Pinnacleドライバに `primary-tap-enable` を設定すると、単一指の接触が `INPUT_BTN_TOUCH` として出力され、ZMKの入力リスナーが左クリックとして扱う。これにより、一次タップ、接触を保持した移動によるドラッグ、2回のタップをホストOSがダブルクリックとして解釈する動作を、専用の独自プロトコルなしで利用できる。`sosho_L_trackpad` と `sosho_L_trackpad_touch` の両方に同じ経路を適用している。
 
 Pinnacleは単一接触デバイスなので、指の本数、二指タップ、二指ダブルタップ、二指スクロール、ピンチはこのハードウェア／公式ドライバの入力だけでは実装できない。これらを時間判定で偽装する実装は行わない。多指ジェスチャーが必要な場合は、多点接触データを出せる別のタッチコントローラが必要になる。
 

@@ -4,6 +4,10 @@
 &glidepoint {
     status = "okay";
     invert-x;
+    /* Moderate attenuation reduces jitter while retaining the official
+     * primary-tap path. Fine movement scaling is applied on the central
+     * listener so fractional motion is accumulated instead of discarded. */
+    sensitivity = "2x";
 };
 &glidepoint_split {
     status = "okay";
