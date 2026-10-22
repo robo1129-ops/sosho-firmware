@@ -2,7 +2,7 @@
 
 The manufacturer circuit diagrams confirm the sensor wiring used by this
 shield. In particular, trackpad selection is SPI-SS1/P1.05 and trackball
-selection is SPI-SS2/P0.31; the shared SPI bus is SCK/P1.13, MOSI/P1.15,
+selection is SPI-SS2/P1.03; the shared SPI bus is SCK/P1.13, MOSI/P1.15,
 MISO/P1.14, with data-ready on P1.07. The trackball overlay uses those
 verified pins. Source: <https://elekit.co.jp/support/faq/5255>.
 
@@ -36,7 +36,7 @@ PMW3610と既存encoder moduleを維持し、`boards/shields/sosho/sosho.dtsi` �
 
 ### Trackpad
 
-既存のGlidePoint / pointing input pathを維持し、`SOSHO_TRACKPAD_XY_SCALE_NUM` / `SOSHO_TRACKPAD_XY_SCALE_DEN` をmovement scaleとして使う。現在の精度重視設定は `1/2` で、中央側のZMK input listenerが分数の余りを保持するため、低速移動の入力を丸め落とさない。値を変更したら再ビルドが必要で、Webアプリの実行時設定としては扱わない。Pinnacle sensitivityは標準・touchプロファイルとも `2x` にしている。
+既存のGlidePoint / pointing input pathを維持し、`SOSHO_TRACKPAD_XY_SCALE_NUM` / `SOSHO_TRACKPAD_XY_SCALE_DEN` をmovement scaleとして使う。現在は入力を減衰させない `1/1` と、Pinnacleの最大感度 `1x` にしている。値を変更したら再ビルドが必要で、Webアプリの実行時設定としては扱わない。
 
 公式ZephyrのCirque Pinnacleドライバに `primary-tap-enable` を設定すると、単一指の接触が `INPUT_BTN_TOUCH` として出力され、ZMKの入力リスナーが左クリックとして扱う。これにより、一次タップ、接触を保持した移動によるドラッグ、2回のタップをホストOSがダブルクリックとして解釈する動作を、専用の独自プロトコルなしで利用できる。`sosho_L_trackpad` と `sosho_L_trackpad_touch` の両方に同じ経路を適用している。
 

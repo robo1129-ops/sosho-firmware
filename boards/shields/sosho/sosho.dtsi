@@ -9,15 +9,12 @@
  * - TRACKBALL_CPI: PMW3610 CPI supported by the official module.
  * - TRACKBALL_XY_SCALE: rational scale applied by zip_xy_scaler.
  * - TRACKPAD_XY_SCALE: rational movement scale applied by zip_xy_scaler.
- *   The default 1/2 scale keeps low-speed pointer movement granular while
- *   preserving fractional motion with the central listener's remainder
- *   accumulator.
  */
 #define SOSHO_TRACKBALL_CPI 200
 #define SOSHO_TRACKBALL_XY_SCALE_NUM 1
 #define SOSHO_TRACKBALL_XY_SCALE_DEN 1
 #define SOSHO_TRACKPAD_XY_SCALE_NUM 1
-#define SOSHO_TRACKPAD_XY_SCALE_DEN 2
+#define SOSHO_TRACKPAD_XY_SCALE_DEN 1
 
 &physical_layout0 {
     transform = <&default_transform>;
@@ -201,8 +198,8 @@
     pinctrl-0 = <&spi1_default>;
     pinctrl-1 = <&spi1_sleep>;
     pinctrl-names = "default", "sleep";
-    /* Official TH-601 schematic: SPI-SS2 is XIAO P0.31. */
-    cs-gpios = <&gpio0 31 GPIO_ACTIVE_LOW>; // SPI-SS2 / nCS
+    /* Official TH-601 schematic: SPI-SS2 is XIAO P1.03. */
+    cs-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>; // SPI-SS2 / nCS
 
     trackball: trackball@0 {
         status = "disabled";

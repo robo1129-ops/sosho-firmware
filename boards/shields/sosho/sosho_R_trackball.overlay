@@ -15,9 +15,8 @@
 &glidepoint_split { status = "okay"; };
 &glidepoint_split_listener {
     status = "okay";
-    /* Scale the left peripheral's trackpad on the central side. The ZMK
-     * listener retains fractional remainders, so small movements are not
-     * lost when the 1/2 precision scale is used. */
+    /* Keep the left peripheral's trackpad path explicit on the central side.
+     * The current 1/1 setting does not attenuate movement. */
     input-processors = <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
 };
 
