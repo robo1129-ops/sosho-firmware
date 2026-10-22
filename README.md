@@ -2,9 +2,10 @@
 
 The manufacturer circuit diagrams confirm the sensor wiring used by this
 shield. In particular, trackpad selection is SPI-SS1/P1.05 and trackball
-selection is SPI-SS2/P1.03; the shared SPI bus is SCK/P1.13, MOSI/P1.15,
-MISO/P1.14, with data-ready on P1.07. The trackball overlay uses those
-verified pins. Source: <https://elekit.co.jp/support/faq/5255>.
+selection is SPI-SS2/P1.03. The trackpad SPI bus uses SCK/P1.13,
+MOSI/P1.15, and MISO/P1.14; the PMW3610 trackball uses the official
+three-wire/shared data configuration with both MOSI and MISO on P1.14.
+Both use data-ready on P1.07. Source: <https://elekit.co.jp/support/faq/5255>.
 
 このリポジトリは、公式SO-SHO templateを基にしたZMK firmware configurationです。日常構成は、右 = Central + trackball、左 = Peripheral + trackpadです。
 
@@ -19,7 +20,7 @@ verified pins. Source: <https://elekit.co.jp/support/faq/5255>.
 
 ZIPには次の全パターンが含まれます。
 
-- `sosho_R_trackball`: 右 / Central / トラックボール（PMW3610のSPI-SS2/P1.03、motion/data-readyはアクティブLow）
+- `sosho_R_trackball`: 右 / Central / トラックボール（PMW3610の共有SDIO=P1.14、SPI-SS2/P1.03）
 - `sosho_L_trackpad`: 左 / Peripheral / トラックパッド
 - `sosho_R_trackpad`: 右 / Central / トラックパッド
 - `sosho_L_trackball`: 左 / Peripheral / トラックボール
