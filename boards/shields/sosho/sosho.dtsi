@@ -5,6 +5,15 @@
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 #include "sosho-layouts.dtsi"
 
+/ {
+    /* The scroll layer uses a custom processor to select one axis for each
+     * sensor report, so diagonal movement never produces diagonal scrolling. */
+    /omit-if-no-ref/ sosho_axis_lock: sosho_axis_lock {
+        compatible = "sosho,input-processor-axis-lock";
+        #input-processor-cells = <0>;
+    };
+};
+
 /*
  * SO-SHO pointing controls (build-time; change here and rebuild):
  * - TRACKBALL_CPI: PMW3610 CPI supported by the official module.

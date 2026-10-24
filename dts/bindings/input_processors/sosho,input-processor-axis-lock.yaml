@@ -1,0 +1,5 @@
+description: SO-SHO dominant-axis lock for relative scrolling
+
+compatible: "sosho,input-processor-axis-lock"
+
+include: ip_zero_param.yaml
