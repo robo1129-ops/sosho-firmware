@@ -37,6 +37,8 @@ PMW3610と既存encoder moduleを維持し、`boards/shields/sosho/sosho.dtsi` �
 
 レイヤー1の右手中段中央（従来MB3の位置）は、レイヤー4を押下中だけ有効にする `MO(4)` に変更している。レイヤー4ではトラックボールのX/Y入力をスクロール入力へ変換するため、キーを押している間だけスクロールモードになる。ZMK Studioで既存の保存済みキーマップを使用している場合は、同じキーに `MO(4)` を割り当てるか、Restore Stock Settings後に反映する。
 
+レイヤー4のトラックボールスクロールには慣性スクロールを実装している。入力を止めた後に約45ms待ってから、直前の速度を16ms間隔で7/8ずつ減衰させるため、自然なスクロールの余韻が出る。左右・上下の軸固定はそのまま維持し、通常のポインター移動やトラックパッドには適用しない。
+
 ### Trackpad
 
 既存のGlidePoint / pointing input pathを維持し、`SOSHO_TRACKPAD_XY_SCALE_NUM` / `SOSHO_TRACKPAD_XY_SCALE_DEN` をmovement scaleとして使う。現在は入力を減衰させない `1/1` と、Pinnacleの最大感度 `1x` にしている。値を変更したら再ビルドが必要で、Webアプリの実行時設定としては扱わない。
