@@ -4,17 +4,12 @@
 &spi0 { status = "okay"; };
 &glidepoint {
     status = "okay";
-    invert-y;
-    data-mode = "absolute";
-    clipping-enable;
-    scaling-enable;
-    scaling-x-resolution = <2048>;
-    scaling-y-resolution = <1536>;
+    data-mode = "relative";
+    sensitivity = "1x";
 };
 &glidepoint_listener {
     status = "okay";
-    input-processors = <&sosho_trackpad_edge_scroll>,
-                       <&sosho_trackpad_long_press>,
+    input-processors = <&sosho_trackpad_long_press>,
                        <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
 };
 
@@ -22,7 +17,7 @@
 &glidepoint_split { status = "okay"; };
 &glidepoint_split_listener {
     status = "okay";
-    /* Split ABS->REL conversion is performed on the source half. */
+    /* Relative reports are forwarded by the split input device. */
     input-processors = <&sosho_trackpad_long_press>,
                        <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
 };

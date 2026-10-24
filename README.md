@@ -44,7 +44,6 @@ ZIPには次の全パターンが各スリープ時間フォルダに含まれ�
 - `sosho_R_none` は中央側の分割入力リスナーを残すため、実際のセンサーを持つPeripheralと組み合わせられる。`sosho_L_none` はセンサーなしのPeripheralとして使う
 - `settings_reset`: 設定消去用（通常の左右ファームとして書き込まない）
 - 初回導入には右CentralのUF2をUSBで一度書き込む。以後のキーマップ編集も右CentralのUSB/COM経路だけを使う
-- `sosho_R_trackball_touch` + `sosho_L_trackpad_touch` は、公式Zephyr Cirque Pinnacleドライバの一次タップを明示したタッチ操作プロファイル
 - Windows接続向けに2M PHYを無効化し、必要な環境でLE passkey入力を有効化する。これはZMK公式のWindows接続トラブルシュートに沿った設定で、接続改善を保証するものではない
 
 左右のモジュールを独立して選ぶ場合は、中央側を `sosho_R_trackball` / `sosho_R_trackpad` / `sosho_R_none` から、Peripheral側を `sosho_L_trackpad` / `sosho_L_trackball` / `sosho_L_none` から選ぶ。WebアプリのNone選択はこの組み合わせに対応する。左右を逆にした場合は、中央側を必ず右手でUSB接続する構成にする。
@@ -69,7 +68,7 @@ Webアプリでは、左右それぞれの反時計回り・時計回りを通�
 
 既存のGlidePoint / pointing input pathを維持し、`SOSHO_TRACKPAD_XY_SCALE_NUM` / `SOSHO_TRACKPAD_XY_SCALE_DEN` をmovement scaleとして使う。現在は入力を減衰させない `1/1` と、Pinnacleの最大感度 `1x` にしている。値を変更したら再ビルドが必要で、Webアプリの実行時設定としては扱わない。
 
-公式ZephyrのCirque Pinnacleドライバに `primary-tap-enable` を設定すると、単一指の接触が `INPUT_BTN_TOUCH` として出力される。本ファームウェアでは、そのイベントを中央側の専用入力プロセッサで判定する。短いタップは左クリック、500ms以上の接触は右クリックとして扱い、長押し後の移動は右ボタンを押したままのドラッグとして出力する。短いタップを2回行った場合は、従来どおりホストOSがダブルクリックとして解釈できる。`sosho_L_trackpad`、`sosho_L_trackpad_touch`、中央側のトラックパッド構成に同じ経路を適用している。
+公式ZephyrのCirque Pinnacleドライバに `primary-tap-enable` を設定すると、単一指の接触が `INPUT_BTN_TOUCH` として出力される。本ファームウェアでは、そのイベントを中央側の専用入力プロセッサで判定する。短いタップは左クリック、500ms以上の接触は右クリックとして扱い、長押し後の移動は右ボタンを押したままのドラッグとして出力する。短いタップを2回行った場合は、従来どおりホストOSがダブルクリックとして解釈できる。標準の `sosho_L_trackpad` と中央側のトラックパッド構成に同じ経路を適用している。
 
 長押しの判定値は `boards/shields/sosho/sosho.dtsi` の `long-press-ms = <500>` で管理する。入力イベントをUSB/BLEのどちらかに依存して処理せず、ZMKの中央側入力リスナーの前段で右ボタンへ変換するため、両方のホスト接続方式で同じ動作になる。
 
@@ -105,7 +104,7 @@ Web editorでは、マクロを編集してJSONへ保存・読み込みできま
 2. 生成物のboard/shield、Studio USB endpoint、BLE設定、settings resetを確認する
 3. 一度だけUSBで導入し、右Centralがホストに接続できること、左Peripheralのキーが右Central経由で入力されることを実機で確認する
 4. 右CentralのUSBから公式Studio RPCのkeymap read/write/re-readを実機で確認する
-5. touchプロファイルで一次タップ、長押し移動のドラッグ、ホスト側ダブルクリックを確認する
+5. 標準トラックパッドプロファイルで一次タップ、長押し移動のドラッグ、ホスト側ダブルクリックを確認する
 6. 不具合時は直前のUF2へ戻せるようにする
 
-このリポジトリのソース変更とActionsビルド以外の物理キーボード操作、flash、再flashは行っていない。実機でのUSB RPCとtouchプロファイルの操作確認は、生成UF2導入後にユーザー側で確認する必要がある。
+このリポジトリのソース変更とActionsビルド以外の物理キーボード操作、flash、再flashは行っていない。実機でのUSB RPC、BLE Studio、トラックパッド操作確認は、生成UF2導入後にユーザー側で確認する必要がある。

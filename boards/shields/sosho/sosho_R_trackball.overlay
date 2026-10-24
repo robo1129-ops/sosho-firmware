@@ -33,10 +33,8 @@
 &glidepoint_split { status = "okay"; };
 &glidepoint_split_listener {
     status = "okay";
-    /* Keep the left peripheral's trackpad path explicit on the central side.
-     * Trackpad movement remains at the independent 1/1 setting. */
-    /* The peripheral/source half already converts ABS samples to REL once.
-     * Running edge_scroll again here causes stale deltas and pointer jumps. */
+    /* The standard relative Pinnacle report is forwarded unchanged by the
+     * split input device. */
     input-processors = <&sosho_trackpad_long_press>,
                        <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
 };

@@ -60,15 +60,11 @@ jobs:
             sosho_R_trackpad  = right / Central / trackpad
             sosho_L_trackball = left / Peripheral / trackball
 
-          Touch profile pair (official Cirque Pinnacle primary tap/drag):
-            sosho_R_trackball_touch = right / Central / trackball
-            sosho_L_trackpad_touch  = left / Peripheral / trackpad
-
           The left trackpad uses Pinnacle sensitivity 1x and a 1/1 movement
           scale so small motion is not attenuated during hardware validation.
-          The touch pair supports primary tap, held-contact drag, and host-side
-          double-click interpretation. It remains ZMK Studio compatible over
-          the right central USB endpoint. It does not add multi-finger gestures.
+          The standard trackpad profile supports primary tap, held-contact drag,
+          and host-side double-click interpretation. The right Central profiles
+          expose the official ZMK Studio USB and BLE transports.
 
           settings_reset is a separate recovery image. Do not flash it as a normal half.
 
