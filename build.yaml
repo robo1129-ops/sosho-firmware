@@ -6,7 +6,7 @@ include:
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_R_trackball rgbled_adapter
     snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=n
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y
     artifact-name: sosho_R_trackball
 
   - board: xiao_ble/nrf52840/zmk
@@ -17,7 +17,7 @@ include:
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_R_trackpad rgbled_adapter
     snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=n
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y
     artifact-name: sosho_R_trackpad
 
   # Alternate peripheral module.
@@ -31,12 +31,49 @@ include:
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_R_trackball_touch rgbled_adapter
     snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=n
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y
     artifact-name: sosho_R_trackball_touch
 
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_L_trackpad_touch rgbled_adapter
     artifact-name: sosho_L_trackpad_touch
+
+  # Explicit no-sleep profiles. The normal profiles use the 60-minute default;
+  # these profiles let the web editor's OFF choice be built without editing
+  # Kconfig by hand. The timeout is a firmware build setting, not a Studio RPC
+  # field, so the matching pair must be flashed together.
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_trackball rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
+    artifact-name: sosho_R_trackball_sleep_off
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackpad rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
+    artifact-name: sosho_L_trackpad_sleep_off
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_trackpad rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
+    artifact-name: sosho_R_trackpad_sleep_off
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackball rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
+    artifact-name: sosho_L_trackball_sleep_off
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_trackball_touch rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
+    artifact-name: sosho_R_trackball_touch_sleep_off
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackpad_touch rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
+    artifact-name: sosho_L_trackpad_touch_sleep_off
 
   # Settings reset firmware.
   - board: xiao_ble/nrf52840/zmk

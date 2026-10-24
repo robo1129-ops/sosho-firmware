@@ -21,13 +21,27 @@
  * - SCROLL_XY_SCALE: independent rational scale for trackball scroll mode.
  * - TRACKPAD_XY_SCALE: rational movement scale applied by zip_xy_scaler.
  */
+#ifndef SOSHO_TRACKBALL_CPI
 #define SOSHO_TRACKBALL_CPI 200
+#endif
+#ifndef SOSHO_TRACKBALL_XY_SCALE_NUM
 #define SOSHO_TRACKBALL_XY_SCALE_NUM 5
+#endif
+#ifndef SOSHO_TRACKBALL_XY_SCALE_DEN
 #define SOSHO_TRACKBALL_XY_SCALE_DEN 6
+#endif
+#ifndef SOSHO_SCROLL_XY_SCALE_NUM
 #define SOSHO_SCROLL_XY_SCALE_NUM 7
+#endif
+#ifndef SOSHO_SCROLL_XY_SCALE_DEN
 #define SOSHO_SCROLL_XY_SCALE_DEN 20
+#endif
+#ifndef SOSHO_TRACKPAD_XY_SCALE_NUM
 #define SOSHO_TRACKPAD_XY_SCALE_NUM 1
+#endif
+#ifndef SOSHO_TRACKPAD_XY_SCALE_DEN
 #define SOSHO_TRACKPAD_XY_SCALE_DEN 1
+#endif
 
 &physical_layout0 {
     transform = <&default_transform>;

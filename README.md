@@ -12,7 +12,7 @@ Both use data-ready on P1.07. Source: <https://elekit.co.jp/support/faq/5255>.
 ## ビルド構成
 
 - 日常構成: `sosho_R_trackball`（右Central） + `sosho_L_trackpad`（左Peripheral）
-- 無操作時の自動スリープは左右すべて `CONFIG_ZMK_IDLE_SLEEP_TIMEOUT=3600000`（1時間）に設定する
+- 無操作時の自動スリープは標準ビルドで左右すべて `CONFIG_ZMK_IDLE_SLEEP_TIMEOUT=3600000`（1時間）に設定する。`build.yaml` の `*_sleep_off` プロファイルでは `0` にして無効化できる
 - `build.yaml` は右CentralのStudio USB endpointと `CONFIG_ZMK_STUDIO=y` を維持する
 - settings reset buildと、他のtrackball / trackpad組み合わせもmatrixに残す
 - 最新成功ビルドの全バリエーションZIP: https://github.com/robo1129-ops/sosho-firmware/releases/download/latest/sosho-firmware-latest.zip
@@ -30,6 +30,8 @@ ZIPには次の全パターンが含まれます。
 - Windows接続向けに2M PHYを無効化し、必要な環境でLE passkey入力を有効化する。これはZMK公式のWindows接続トラブルシュートに沿った設定で、接続改善を保証するものではない
 
 ## ポインティングデバイス設定
+
+Webエディターの自動スリープ設定は、分指定（1〜1440分）またはオフを選べます。これはキーマップRPCで即時変更する値ではなく、ファームウェアのビルド時設定です。標準の1時間版を使うか、オフにしたい場合は左右の `*_sleep_off` artifactを同じ組み合わせで書き込んでください。
 
 ### Trackball
 
@@ -53,17 +55,17 @@ Web editorでは1回・2回・3回・ホールドのtap-dance定義を作成し�
 
 ## Studio / USBの状態
 
-右Central側に公式のStudio USB UART transport、`CONFIG_ZMK_STUDIO=y`、Studio unlock bindingを構成する。PC側のStudio編集はBLE GATT transportを無効にし、Web SerialのUSB CDC-ACMだけを使用する。`CONFIG_ZMK_BLE=y` は左右分割通信と通常の無線キーボード動作のために残すが、PC側のキーマップ編集経路では使わない。左Peripheral側は左右通信専用で、PCのStudio終端ではない。
+右Central側に公式のStudio USB UART transport、公式Studio BLE GATT transport、`CONFIG_ZMK_STUDIO=y`、Studio unlock bindingを構成する。USBは右CentralのCDC-ACM、BLEは公式GATTサービスを使う。左Peripheral側は左右通信専用で、PCのStudio終端ではない。WindowsのWeb Bluetoothは制約があるため、BLE編集は対応ブラウザー／ネイティブStudioで行い、WindowsではUSBを推奨する。
 
-COMポートはUSB CDC/ACMのStudio UART transportであり、BLEをCOMポートとして公開する設定にはならない。Webアプリでは右CentralをUSB接続し、Web Serialから公式Studio protobuf RPCを実行する。
+COMポートはUSB CDC/ACMのStudio UART transportであり、BLEをCOMポートとして公開する設定にはならない。Webアプリは右CentralのUSBと、対応環境では公式Studio BLE GATTの両方から同じprotobuf RPCを実行する。USB接続時に左Peripheralを選択した場合は編集対象外として警告する。
 
 Web editorには公式Studio protobuf RPCのフレーム生成・応答解析・`get_device_info` / `get_lock_state` / `get_keymap` / `set_layer_binding` / `save_changes` / 再読み取りを実装済み。実機のUSB RPCはUF2導入後に確認する。ZMK公式ドキュメントも、USB利用時は `studio-rpc-usb-uart` snippetと `CONFIG_ZMK_STUDIO=y` を使い、分割キーボードでは中央側だけにUSB endpointを構成する手順を示している。
 
 ## マクロの扱い
 
-公式ZMK Studio RPCはキーマップ編集用で、マクロ定義の作成・編集・削除RPCは提供していません。USB専用方針では、Web editorのマクロはJSON/localStorageへ保存し、実機へ書き込めるとは表示しません。実機で動くマクロにするには、ZMKの `behavior-macro` 定義をkeymapへ組み込み、ファームウェアを再ビルドしてUF2を書き込む必要があります。
+公式ZMK Studio RPCはキーマップ編集用で、マクロ定義の作成・編集・削除RPCは提供していません。そのため本ファームウェアでは、公式RPCとは別に暗号化済みSO-SHOマクロBLE GATTサービスをCentralへ追加し、Web editorからMacro 0〜15を保存・削除・実行できるようにします。USB接続時は公式RPCの仕様上、マクロ送信ではなくJSON保存までです。
 
-保存形式は、Macro 0〜15の16スロット、名前、割り当て先、最大8ステップの `KEY|MODE|WAIT_MS` 列です。`MODE` は `tap` / `press` / `release`、待ち時間は0〜60000ミリ秒です。保存先はJSONとlocalStorageです。
+保存形式は、Macro 0〜15の16スロット、名前、割り当て先、最大8ステップの `KEY|MODE|WAIT_MS` 列です。`MODE` は `tap` / `press` / `release`、待ち時間は0〜60000ミリ秒です。保存先はJSON、localStorage、対応BLE時のZMK settingsです。
 
 PINを要求する特殊なホスト向けの予備として、Layer 3に数字入力を用意しています。通常レイヤーで右側のLayer 3キーを押している間、右手側の数字キーを使い、右下のキーでENTERを送信できます。通常のWindowsペアリングではPIN入力を使わない構成です。
 
