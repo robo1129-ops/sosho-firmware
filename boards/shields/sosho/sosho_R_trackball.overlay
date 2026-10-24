@@ -12,6 +12,15 @@
     /* Correct the sensor orientation on both axes, then apply the 3/4 scale. */
     input-processors = <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
                        <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>;
+
+    /* Layer 4 is the reserved ZMK Studio scroll layer.  MO(4) keeps it
+     * active only while the assigned key is held. */
+    scroller {
+        layers = <4>;
+        input-processors = <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
+                           <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>,
+                           <&zip_xy_to_scroll_mapper>;
+    };
 };
 
 /* The central receives the left peripheral's trackpad input here. */
@@ -29,4 +38,11 @@
     status = "okay";
     input-processors = <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
                        <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>;
+
+    scroller {
+        layers = <4>;
+        input-processors = <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
+                           <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>,
+                           <&zip_xy_to_scroll_mapper>;
+    };
 };
