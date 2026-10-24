@@ -10,6 +10,12 @@ config SHIELD_SOSHO_L_TRACKPAD
 config SHIELD_SOSHO_L_TRACKBALL
     def_bool $(shields_list_contains,sosho_L_trackball)
 
+config SHIELD_SOSHO_R_NONE
+    def_bool $(shields_list_contains,sosho_R_none)
+
+config SHIELD_SOSHO_L_NONE
+    def_bool $(shields_list_contains,sosho_L_none)
+
 config SHIELD_SOSHO_R_TRACKBALL_TOUCH
     def_bool $(shields_list_contains,sosho_R_trackball_touch)
 

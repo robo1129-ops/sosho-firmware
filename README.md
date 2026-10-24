@@ -24,10 +24,14 @@ ZIPには次の全パターンが含まれます。
 - `sosho_L_trackpad`: 左 / Peripheral / トラックパッド
 - `sosho_R_trackpad`: 右 / Central / トラックパッド
 - `sosho_L_trackball`: 左 / Peripheral / トラックボール
+- `sosho_R_none` + `sosho_L_none`: 左右ともブランクのダミーモジュール。行列、エンコーダー、分割通信だけを残し、ローカルのポインティングセンサーは有効にしない
+- `sosho_R_none` は中央側の分割入力リスナーを残すため、実際のセンサーを持つPeripheralと組み合わせられる。`sosho_L_none` はセンサーなしのPeripheralとして使う
 - `settings_reset`: 設定消去用（通常の左右ファームとして書き込まない）
 - 初回導入には右CentralのUF2をUSBで一度書き込む。以後のキーマップ編集も右CentralのUSB/COM経路だけを使う
 - `sosho_R_trackball_touch` + `sosho_L_trackpad_touch` は、公式Zephyr Cirque Pinnacleドライバの一次タップを明示したタッチ操作プロファイル
 - Windows接続向けに2M PHYを無効化し、必要な環境でLE passkey入力を有効化する。これはZMK公式のWindows接続トラブルシュートに沿った設定で、接続改善を保証するものではない
+
+左右のモジュールを独立して選ぶ場合は、中央側を `sosho_R_trackball` / `sosho_R_trackpad` / `sosho_R_none` から、Peripheral側を `sosho_L_trackpad` / `sosho_L_trackball` / `sosho_L_none` から選ぶ。WebアプリのNone選択はこの組み合わせに対応する。左右を逆にした場合は、中央側を必ず右手でUSB接続する構成にする。
 
 ## ポインティングデバイス設定
 
@@ -40,6 +44,8 @@ PMW3610と既存encoder moduleを維持し、`boards/shields/sosho/sosho.dtsi` �
 レイヤー1の右手中段中央（従来MB3の位置）は、レイヤー4を押下中だけ有効にする `MO(4)` に変更している。レイヤー4ではトラックボールのX/Y入力をスクロール入力へ変換するため、キーを押している間だけスクロールモードになる。ZMK Studioで既存の保存済みキーマップを使用している場合は、同じキーに `MO(4)` を割り当てるか、Restore Stock Settings後に反映する。
 
 レイヤー4のトラックボールスクロールには慣性スクロールを実装している。入力を止めた後に約45ms待ってから、直前の速度を16ms間隔で7/8ずつ減衰させるため、自然なスクロールの余韻が出る。スクロール量はライブ入力・慣性入力とも基準値の35%で、前回の70%設定の半分にしている。垂直方向は通常のスクロールと逆になる。左右・上下の軸固定はそのまま維持し、通常のポインター移動やトラックパッドには適用しない。
+
+ロータリーエンコーダーは押下入力を持たない。標準の `config/sosho.keymap` では、左エンコーダーの反時計回りが左右スクロール左、時計回りが左右スクロール右、右エンコーダーの反時計回りが上下スクロール下、時計回りが上下スクロール上である。Webアプリのエンコーダー設定も同じ順序で表示する。ZMK Studioの標準キーマップRPCはキー割り当てを扱うが、センサーの `sensor-bindings` を実行時に変更しないため、エンコーダー動作をファームウェアへ反映するには再ビルドが必要になる。
 
 ### Trackpad
 

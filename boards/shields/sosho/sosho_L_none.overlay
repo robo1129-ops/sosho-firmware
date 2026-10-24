@@ -1,0 +1,4 @@
+#include "sosho_L.dtsi"
+
+/* Blank left module: no local SPI input is enabled. The peripheral still
+ * provides its matrix, encoder, battery and split BLE services. */

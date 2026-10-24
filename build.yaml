@@ -25,6 +25,18 @@ include:
     shield: sosho_L_trackball rgbled_adapter
     artifact-name: sosho_L_trackball
 
+  # Blank/dummy module profiles. The corresponding side keeps its matrix and
+  # split services but enables no local trackball or trackpad driver.
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_none rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y
+    artifact-name: sosho_R_none
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_none rgbled_adapter
+    artifact-name: sosho_L_none
+
   # Official-driver-compatible touch profile. The Cirque Pinnacle's primary
   # tap bit is exposed as INPUT_BTN_TOUCH; ZMK maps that to mouse button 1,
   # which provides tap, hold-and-move drag, and host-side double-click.
@@ -63,6 +75,17 @@ include:
     shield: sosho_L_trackball rgbled_adapter
     cmake-args: -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
     artifact-name: sosho_L_trackball_sleep_off
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_none rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
+    artifact-name: sosho_R_none_sleep_off
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_none rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
+    artifact-name: sosho_L_none_sleep_off
 
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_R_trackball_touch rgbled_adapter

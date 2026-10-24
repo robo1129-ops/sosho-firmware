@@ -1,0 +1,25 @@
+#include "sosho_R.dtsi"
+#include <dt-bindings/zmk/input_transform.h>
+#include <input/processors.dtsi>
+
+/* Blank right module: keep the Central split-input listeners so this profile
+ * can be paired with either a trackpad or trackball peripheral. */
+&glidepoint_split { status = "okay"; };
+&glidepoint_split_listener {
+    status = "okay";
+    input-processors = <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
+};
+
+&trackball_split { status = "okay"; };
+&trackball_split_listener {
+    status = "okay";
+    input-processors = <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
+                       <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>;
+    scroller {
+        layers = <4>;
+        input-processors = <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,
+                           <&sosho_axis_lock>,
+                           <&zip_xy_to_scroll_mapper>,
+                           <&zip_scroll_scaler SOSHO_SCROLL_XY_SCALE_NUM SOSHO_SCROLL_XY_SCALE_DEN>;
+    };
+};
