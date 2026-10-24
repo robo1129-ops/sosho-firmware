@@ -75,7 +75,3 @@ include:
     cmake-args: -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
     artifact-name: sosho_L_trackpad_touch_sleep_off
 
-  # Settings reset firmware.
-  - board: xiao_ble/nrf52840/zmk
-    shield: settings_reset
-    artifact-name: settings_reset
