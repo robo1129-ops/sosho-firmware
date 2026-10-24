@@ -15,12 +15,14 @@
 / {
     behaviors {
         ec_ms_l: ec_ms_h {
-            compatible = "zmk,behavior-encoder-mouse-scroll";
+            compatible = "zmk,behavior-sensor-rotate-var";
             #sensor-binding-cells = <2>;
+            bindings = <&msc>, <&msc>;
         };
         ec_ms_r: ec_ms_v {
-            compatible = "zmk,behavior-encoder-mouse-scroll";
+            compatible = "zmk,behavior-sensor-rotate-var";
             #sensor-binding-cells = <2>;
+            bindings = <&msc>, <&msc>;
         };
     };
 };
