@@ -9,6 +9,7 @@
 &trackball { status = "okay"; };
 &trackball_listener {
     status = "okay";
+    input-processors = <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>;
 };
 
 /* The central receives the left peripheral's trackpad input here. */
@@ -16,7 +17,7 @@
 &glidepoint_split_listener {
     status = "okay";
     /* Keep the left peripheral's trackpad path explicit on the central side.
-     * The current 1/1 setting does not attenuate movement. */
+     * Trackpad movement remains at the independent 1/1 setting. */
     input-processors = <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
 };
 
@@ -24,4 +25,5 @@
 &trackball_split { status = "okay"; };
 &trackball_split_listener {
     status = "okay";
+    input-processors = <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>;
 };
