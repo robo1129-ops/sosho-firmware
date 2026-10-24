@@ -1,0 +1,12 @@
+description: SO-SHO trackpad tap and long-press mouse button processor
+
+compatible: "sosho,input-processor-trackpad-long-press"
+
+include: ip_zero_param.yaml
+
+properties:
+  long-press-ms:
+    type: int
+    required: false
+    default: 500
+    description: Contact duration in milliseconds that triggers the right button

@@ -12,6 +12,15 @@
         compatible = "sosho,input-processor-axis-lock";
         #input-processor-cells = <0>;
     };
+
+    /omit-if-no-ref/ sosho_trackpad_long_press: sosho_trackpad_long_press {
+        compatible = "sosho,input-processor-trackpad-long-press";
+        #input-processor-cells = <0>;
+        /* Short taps remain left clicks; a contact held for 500 ms becomes
+         * a right click.  The value is build-time so the gesture is stable
+         * in both USB and BLE pointing paths. */
+        long-press-ms = <500>;
+    };
 };
 
 /*

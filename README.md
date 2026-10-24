@@ -69,7 +69,9 @@ Webアプリでは、左右それぞれの反時計回り・時計回りを通�
 
 既存のGlidePoint / pointing input pathを維持し、`SOSHO_TRACKPAD_XY_SCALE_NUM` / `SOSHO_TRACKPAD_XY_SCALE_DEN` をmovement scaleとして使う。現在は入力を減衰させない `1/1` と、Pinnacleの最大感度 `1x` にしている。値を変更したら再ビルドが必要で、Webアプリの実行時設定としては扱わない。
 
-公式ZephyrのCirque Pinnacleドライバに `primary-tap-enable` を設定すると、単一指の接触が `INPUT_BTN_TOUCH` として出力され、ZMKの入力リスナーが左クリックとして扱う。これにより、一次タップ、接触を保持した移動によるドラッグ、2回のタップをホストOSがダブルクリックとして解釈する動作を、専用の独自プロトコルなしで利用できる。`sosho_L_trackpad` と `sosho_L_trackpad_touch` の両方に同じ経路を適用している。
+公式ZephyrのCirque Pinnacleドライバに `primary-tap-enable` を設定すると、単一指の接触が `INPUT_BTN_TOUCH` として出力される。本ファームウェアでは、そのイベントを中央側の専用入力プロセッサで判定する。短いタップは左クリック、500ms以上の接触は右クリックとして扱い、長押し後の移動は右ボタンを押したままのドラッグとして出力する。短いタップを2回行った場合は、従来どおりホストOSがダブルクリックとして解釈できる。`sosho_L_trackpad`、`sosho_L_trackpad_touch`、中央側のトラックパッド構成に同じ経路を適用している。
+
+長押しの判定値は `boards/shields/sosho/sosho.dtsi` の `long-press-ms = <500>` で管理する。入力イベントをUSB/BLEのどちらかに依存して処理せず、ZMKの中央側入力リスナーの前段で右ボタンへ変換するため、両方のホスト接続方式で同じ動作になる。
 
 Pinnacleは単一接触デバイスなので、指の本数、二指タップ、二指ダブルタップ、二指スクロール、ピンチはこのハードウェア／公式ドライバの入力だけでは実装できない。これらを時間判定で偽装する実装は行わない。多指ジェスチャーが必要な場合は、多点接触データを出せる別のタッチコントローラが必要になる。
 

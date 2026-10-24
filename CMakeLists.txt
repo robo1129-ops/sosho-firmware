@@ -1,4 +1,4 @@
-zephyr_sources(src/boot_delay_hack.c src/sosho_axis_lock.c)
+zephyr_sources(src/boot_delay_hack.c src/sosho_axis_lock.c src/sosho_trackpad_long_press.c)
 
 # HID reports and the active-layer state only exist on the split central.  The
 # peripheral forwards its sensor events to the central, where this work item
