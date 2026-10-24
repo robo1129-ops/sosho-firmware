@@ -10,6 +10,11 @@
 &glidepoint {
     status = "okay";
     invert-x;
+    data-mode = "absolute";
+    clipping-enable;
+    scaling-enable;
+    scaling-x-resolution = <2048>;
+    scaling-y-resolution = <1536>;
     /* Keep the touch profile at the official maximum sensitivity while
      * validating the hardware and preserving primary taps. */
     sensitivity = "1x";
@@ -18,4 +23,5 @@
 &glidepoint_split {
     status = "okay";
     device = <&glidepoint>;
+    input-processors = <&sosho_trackpad_edge_scroll>;
 };

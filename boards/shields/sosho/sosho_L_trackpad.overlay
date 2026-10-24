@@ -4,6 +4,11 @@
 &glidepoint {
     status = "okay";
     invert-x;
+    data-mode = "absolute";
+    clipping-enable;
+    scaling-enable;
+    scaling-x-resolution = <2048>;
+    scaling-y-resolution = <1536>;
     /* 1x is the official maximum sensitivity. Keep the raw movement rate
      * while validating the hardware and avoid attenuating small motion. */
     sensitivity = "1x";
@@ -11,4 +16,5 @@
 &glidepoint_split {
     status = "okay";
     device = <&glidepoint>;
+    input-processors = <&sosho_trackpad_edge_scroll>;
 };

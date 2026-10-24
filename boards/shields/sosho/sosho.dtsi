@@ -21,6 +21,16 @@
          * in both USB and BLE pointing paths. */
         long-press-ms = <500>;
     };
+
+    /omit-if-no-ref/ sosho_trackpad_edge_scroll: sosho_trackpad_edge_scroll {
+        compatible = "sosho,input-processor-trackpad-edge-scroll";
+        #input-processor-cells = <0>;
+        /* The outer 18% of the round active area is the scroll ring. */
+        edge-band-percent = <82>;
+        /* Lower values make the edge scroll faster; 4 keeps the default
+         * circular gesture usable without producing large wheel jumps. */
+        scroll-divider = <4>;
+    };
 };
 
 /*
