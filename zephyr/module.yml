@@ -1,3 +1,5 @@
+name: sosho_firmware
+
 build:
   cmake: .
   settings:
