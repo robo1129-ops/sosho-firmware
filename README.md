@@ -33,7 +33,7 @@ ZIPには次の全パターンが含まれます。
 
 ### Trackball
 
-PMW3610と既存encoder moduleを維持し、`boards/shields/sosho/sosho.dtsi` の `SOSHO_TRACKBALL_CPI`、`SOSHO_TRACKBALL_XY_SCALE_NUM` / `SOSHO_TRACKBALL_XY_SCALE_DEN` を使う。現在の標準ビルドはCPI 200（センサー側の下限）に加えて、トラックボールの移動量を `1/2` に減衰させる。値を変更したらfirmwareを再ビルドする。実機の体感値はActions artifactを確認してから導入する。
+PMW3610と既存encoder moduleを維持し、`boards/shields/sosho/sosho.dtsi` の `SOSHO_TRACKBALL_CPI`、`SOSHO_TRACKBALL_XY_SCALE_NUM` / `SOSHO_TRACKBALL_XY_SCALE_DEN` を使う。現在の標準ビルドはCPI 200（センサー側の下限）に加えて、水平軸を反転し、トラックボールの移動量を `3/4` に減衰させる。値を変更したらfirmwareを再ビルドする。実機の体感値はActions artifactを確認してから導入する。
 
 ### Trackpad
 

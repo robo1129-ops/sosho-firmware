@@ -9,7 +9,10 @@
 &trackball { status = "okay"; };
 &trackball_listener {
     status = "okay";
-    input-processors = <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>;
+    /* The sensor is mounted 90 degrees from the host coordinate convention;
+     * invert the resulting horizontal REL_X event, then apply the 3/4 scale. */
+    input-processors = <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,
+                       <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>;
 };
 
 /* The central receives the left peripheral's trackpad input here. */
@@ -25,5 +28,6 @@
 &trackball_split { status = "okay"; };
 &trackball_split_listener {
     status = "okay";
-    input-processors = <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>;
+    input-processors = <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,
+                       <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>;
 };
