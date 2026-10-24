@@ -38,10 +38,11 @@
 #define SOSHO_SCROLL_INERTIA_DECAY_DEN 8
 #define SOSHO_SCROLL_INERTIA_STOP_Q8 20
 
-/* The sensor path already applies the 3/4 build-time scale.  Keep the same
- * scale here so the inertial tail starts at the same speed as live motion. */
-#define SOSHO_SCROLL_SCALE_NUM 3
-#define SOSHO_SCROLL_SCALE_DEN 4
+/* The sensor path already applies the 1/2 build-time scroll scale.  Keep the
+ * same scale here so the inertial tail starts at the same speed as live
+ * motion. */
+#define SOSHO_SCROLL_SCALE_NUM 1
+#define SOSHO_SCROLL_SCALE_DEN 2
 
 static struct k_spinlock inertia_lock;
 static int32_t velocity_x_q8;
@@ -154,7 +155,10 @@ static void sosho_scroll_inertia_input_cb(struct input_event *event,
         return;
     }
 
-    int32_t sample_q8 = scale_to_q8(-event->value);
+    /* The live scroll chain inverts X but deliberately leaves Y in its new
+     * orientation.  Mirror that sign convention for the inertial tail. */
+    int32_t sample = event->code == INPUT_REL_X ? -event->value : event->value;
+    int32_t sample_q8 = scale_to_q8(sample);
     k_spinlock_key_t key = k_spin_lock(&inertia_lock);
 
     /* A short moving average avoids an abrupt jump when the finger/ball is

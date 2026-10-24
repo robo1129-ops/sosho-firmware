@@ -18,11 +18,14 @@
  * SO-SHO pointing controls (build-time; change here and rebuild):
  * - TRACKBALL_CPI: PMW3610 CPI supported by the official module.
  * - TRACKBALL_XY_SCALE: rational scale applied by zip_xy_scaler.
+ * - SCROLL_XY_SCALE: independent rational scale for trackball scroll mode.
  * - TRACKPAD_XY_SCALE: rational movement scale applied by zip_xy_scaler.
  */
 #define SOSHO_TRACKBALL_CPI 200
 #define SOSHO_TRACKBALL_XY_SCALE_NUM 3
 #define SOSHO_TRACKBALL_XY_SCALE_DEN 4
+#define SOSHO_SCROLL_XY_SCALE_NUM 1
+#define SOSHO_SCROLL_XY_SCALE_DEN 2
 #define SOSHO_TRACKPAD_XY_SCALE_NUM 1
 #define SOSHO_TRACKPAD_XY_SCALE_DEN 1
 

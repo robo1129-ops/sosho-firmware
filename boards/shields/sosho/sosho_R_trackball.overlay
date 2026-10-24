@@ -17,8 +17,10 @@
      * active only while the assigned key is held. */
     scroller {
         layers = <4>;
-        input-processors = <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
-                           <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>,
+        /* Keep horizontal orientation, reverse vertical scroll direction, and
+         * use half the previous scroll amount. */
+        input-processors = <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,
+                           <&zip_xy_scaler SOSHO_SCROLL_XY_SCALE_NUM SOSHO_SCROLL_XY_SCALE_DEN>,
                            <&sosho_axis_lock>,
                            <&zip_xy_to_scroll_mapper>;
     };
@@ -42,8 +44,8 @@
 
     scroller {
         layers = <4>;
-        input-processors = <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
-                           <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>,
+        input-processors = <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,
+                           <&zip_xy_scaler SOSHO_SCROLL_XY_SCALE_NUM SOSHO_SCROLL_XY_SCALE_DEN>,
                            <&sosho_axis_lock>,
                            <&zip_xy_to_scroll_mapper>;
     };
