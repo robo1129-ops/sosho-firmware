@@ -1,0 +1,18 @@
+description: SO-SHO circular trackpad edge-to-wheel scroll processor
+
+compatible: "sosho,input-processor-trackpad-edge-scroll"
+
+include: ip_zero_param.yaml
+
+properties:
+  edge-band-percent:
+    type: int
+    required: false
+    default: 82
+    description: Percentage of the active radius that remains the normal pointer area
+
+  scroll-divider:
+    type: int
+    required: false
+    default: 4
+    description: Divider applied to tangential edge motion before wheel events are emitted
