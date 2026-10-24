@@ -16,8 +16,8 @@
 &glidepoint_split { status = "okay"; };
 &glidepoint_split_listener {
     status = "okay";
-    input-processors = <&sosho_trackpad_edge_scroll>,
-                       <&sosho_trackpad_long_press>,
+    /* The source half has already converted the split trackpad stream. */
+    input-processors = <&sosho_trackpad_long_press>,
                        <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
 };
 

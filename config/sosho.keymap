@@ -1,6 +1,11 @@
 //スクロール量の調整(デフォルト150)
 #define ZMK_POINTING_DEFAULT_SCRL_VAL 150
 
+/* Keep the two hold-tap behaviors in the Studio behavior registry even when
+ * the compiled default keymap does not reference them.  This is required for
+ * Web/ZMK Studio to write a new tap/hold binding over RPC. */
+#define ZMK_BEHAVIORS_KEEP_MT
+#define ZMK_BEHAVIORS_KEEP_LT
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/keys.h>
