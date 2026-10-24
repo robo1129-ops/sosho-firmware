@@ -1,100 +1,226 @@
 ---
 include:
-  # Daily build: RIGHT = Central + trackball; LEFT = Peripheral + trackpad.
-  # PC-side Studio is USB-only. BLE remains enabled for the split link and
-  # normal wireless keyboard operation.
+  # Every hardware profile is built for each selectable sleep mode.
+  # The right-side Central profiles keep the Studio USB/BLE transport.
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_R_trackball rgbled_adapter
     snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y
-    artifact-name: sosho_R_trackball
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=300000
+    artifact-name: sleep-5m_sosho_R_trackball
 
   - board: xiao_ble/nrf52840/zmk
-    shield: sosho_L_trackpad rgbled_adapter
-    artifact-name: sosho_L_trackpad
-
-  # Alternate central module (Studio over USB).
-  - board: xiao_ble/nrf52840/zmk
-    shield: sosho_R_trackpad rgbled_adapter
+    shield: sosho_R_trackball rgbled_adapter
     snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y
-    artifact-name: sosho_R_trackpad
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=900000
+    artifact-name: sleep-15m_sosho_R_trackball
 
-  # Alternate peripheral module.
   - board: xiao_ble/nrf52840/zmk
-    shield: sosho_L_trackball rgbled_adapter
-    artifact-name: sosho_L_trackball
-
-  # Blank/dummy module profiles. The corresponding side keeps its matrix and
-  # split services but enables no local trackball or trackpad driver.
-  - board: xiao_ble/nrf52840/zmk
-    shield: sosho_R_none rgbled_adapter
+    shield: sosho_R_trackball rgbled_adapter
     snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y
-    artifact-name: sosho_R_none
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000
+    artifact-name: sleep-30m_sosho_R_trackball
 
   - board: xiao_ble/nrf52840/zmk
-    shield: sosho_L_none rgbled_adapter
-    artifact-name: sosho_L_none
-
-  # Official-driver-compatible touch profile. The Cirque Pinnacle's primary
-  # tap bit is exposed as INPUT_BTN_TOUCH; ZMK maps that to mouse button 1,
-  # which provides tap, hold-and-move drag, and host-side double-click.
-  - board: xiao_ble/nrf52840/zmk
-    shield: sosho_R_trackball_touch rgbled_adapter
+    shield: sosho_R_trackball rgbled_adapter
     snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y
-    artifact-name: sosho_R_trackball_touch
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=3600000
+    artifact-name: sleep-60m_sosho_R_trackball
 
-  - board: xiao_ble/nrf52840/zmk
-    shield: sosho_L_trackpad_touch rgbled_adapter
-    artifact-name: sosho_L_trackpad_touch
-
-  # Explicit no-sleep profiles. The normal profiles use the 60-minute default;
-  # these profiles let the web editor's OFF choice be built without editing
-  # Kconfig by hand. The timeout is a firmware build setting, not a Studio RPC
-  # field, so the matching pair must be flashed together.
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_R_trackball rgbled_adapter
     snippet: studio-rpc-usb-uart
     cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
-    artifact-name: sosho_R_trackball_sleep_off
+    artifact-name: sleep-off_sosho_R_trackball
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackpad rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=300000
+    artifact-name: sleep-5m_sosho_L_trackpad
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackpad rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=900000
+    artifact-name: sleep-15m_sosho_L_trackpad
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackpad rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000
+    artifact-name: sleep-30m_sosho_L_trackpad
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackpad rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=3600000
+    artifact-name: sleep-60m_sosho_L_trackpad
 
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_L_trackpad rgbled_adapter
     cmake-args: -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
-    artifact-name: sosho_L_trackpad_sleep_off
+    artifact-name: sleep-off_sosho_L_trackpad
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_trackpad rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=300000
+    artifact-name: sleep-5m_sosho_R_trackpad
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_trackpad rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=900000
+    artifact-name: sleep-15m_sosho_R_trackpad
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_trackpad rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000
+    artifact-name: sleep-30m_sosho_R_trackpad
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_trackpad rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=3600000
+    artifact-name: sleep-60m_sosho_R_trackpad
 
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_R_trackpad rgbled_adapter
     snippet: studio-rpc-usb-uart
     cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
-    artifact-name: sosho_R_trackpad_sleep_off
+    artifact-name: sleep-off_sosho_R_trackpad
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackball rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=300000
+    artifact-name: sleep-5m_sosho_L_trackball
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackball rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=900000
+    artifact-name: sleep-15m_sosho_L_trackball
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackball rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000
+    artifact-name: sleep-30m_sosho_L_trackball
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackball rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=3600000
+    artifact-name: sleep-60m_sosho_L_trackball
 
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_L_trackball rgbled_adapter
     cmake-args: -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
-    artifact-name: sosho_L_trackball_sleep_off
+    artifact-name: sleep-off_sosho_L_trackball
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_none rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=300000
+    artifact-name: sleep-5m_sosho_R_none
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_none rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=900000
+    artifact-name: sleep-15m_sosho_R_none
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_none rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000
+    artifact-name: sleep-30m_sosho_R_none
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_none rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=3600000
+    artifact-name: sleep-60m_sosho_R_none
 
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_R_none rgbled_adapter
     snippet: studio-rpc-usb-uart
     cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
-    artifact-name: sosho_R_none_sleep_off
+    artifact-name: sleep-off_sosho_R_none
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_none rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=300000
+    artifact-name: sleep-5m_sosho_L_none
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_none rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=900000
+    artifact-name: sleep-15m_sosho_L_none
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_none rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000
+    artifact-name: sleep-30m_sosho_L_none
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_none rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=3600000
+    artifact-name: sleep-60m_sosho_L_none
 
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_L_none rgbled_adapter
     cmake-args: -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
-    artifact-name: sosho_L_none_sleep_off
+    artifact-name: sleep-off_sosho_L_none
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_trackball_touch rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=300000
+    artifact-name: sleep-5m_sosho_R_trackball_touch
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_trackball_touch rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=900000
+    artifact-name: sleep-15m_sosho_R_trackball_touch
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_trackball_touch rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000
+    artifact-name: sleep-30m_sosho_R_trackball_touch
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_R_trackball_touch rgbled_adapter
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=3600000
+    artifact-name: sleep-60m_sosho_R_trackball_touch
 
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_R_trackball_touch rgbled_adapter
     snippet: studio-rpc-usb-uart
     cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
-    artifact-name: sosho_R_trackball_touch_sleep_off
+    artifact-name: sleep-off_sosho_R_trackball_touch
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackpad_touch rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=300000
+    artifact-name: sleep-5m_sosho_L_trackpad_touch
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackpad_touch rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=900000
+    artifact-name: sleep-15m_sosho_L_trackpad_touch
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackpad_touch rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000
+    artifact-name: sleep-30m_sosho_L_trackpad_touch
+
+  - board: xiao_ble/nrf52840/zmk
+    shield: sosho_L_trackpad_touch rgbled_adapter
+    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=3600000
+    artifact-name: sleep-60m_sosho_L_trackpad_touch
 
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_L_trackpad_touch rgbled_adapter
     cmake-args: -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
-    artifact-name: sosho_L_trackpad_touch_sleep_off
+    artifact-name: sleep-off_sosho_L_trackpad_touch
+
+  # settings_reset remains a separate recovery image when provided by the build.
 

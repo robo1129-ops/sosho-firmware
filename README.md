@@ -12,13 +12,21 @@ Both use data-ready on P1.07. Source: <https://elekit.co.jp/support/faq/5255>.
 ## ビルド構成
 
 - 日常構成: `sosho_R_trackball`（右Central） + `sosho_L_trackpad`（左Peripheral）
-- 無操作時の自動スリープは標準ビルドで左右すべて `CONFIG_ZMK_IDLE_SLEEP_TIMEOUT=3600000`（1時間）に設定する。`build.yaml` の `*_sleep_off` プロファイルでは `0` にして無効化できる
+- 無操作時の自動スリープは、5分・15分・30分・1時間・スリープなしの5種類をビルドする。各種類はZIP内の `sleep-5m/`、`sleep-15m/`、`sleep-30m/`、`sleep-60m/`、`sleep-off/` フォルダに分けて収録する
 - `build.yaml` は右CentralのStudio USB endpointと `CONFIG_ZMK_STUDIO=y` を維持する
 - settings reset buildと、他のtrackball / trackpad組み合わせもmatrixに残す
 - 最新成功ビルドの全バリエーションZIP: https://github.com/robo1129-ops/sosho-firmware/releases/download/latest/sosho-firmware-latest.zip
 - ZIPを作るActions: https://github.com/robo1129-ops/sosho-firmware/actions/workflows/package-firmware.yml
 
-ZIPには次の全パターンが含まれます。
+ZIPには次の全パターンが各スリープ時間フォルダに含まれます。
+
+- `sleep-5m/`: 5分で自動スリープ
+- `sleep-15m/`: 15分で自動スリープ
+- `sleep-30m/`: 30分で自動スリープ
+- `sleep-60m/`: 1時間で自動スリープ
+- `sleep-off/`: 自動スリープなし
+
+各フォルダには、以下の右/左モジュール組み合わせが同じ命名規則で入ります。
 
 - `sosho_R_trackball`: 右 / Central / トラックボール（PMW3610の共有SDIO=P1.14、SPI-SS2/P1.03）
 - `sosho_L_trackpad`: 左 / Peripheral / トラックパッド
@@ -35,7 +43,7 @@ ZIPには次の全パターンが含まれます。
 
 ## ポインティングデバイス設定
 
-Webエディターの自動スリープ設定は、分指定（1〜1440分）またはオフを選べます。これはキーマップRPCで即時変更する値ではなく、ファームウェアのビルド時設定です。標準の1時間版を使うか、オフにしたい場合は左右の `*_sleep_off` artifactを同じ組み合わせで書き込んでください。
+Webエディターの自動スリープ設定は、分指定またはオフを選べます。これはキーマップRPCで即時変更する値ではなく、ファームウェアのビルド時設定です。ZIPでは希望する `sleep-*` フォルダから左右のUF2を同じ組み合わせで書き込んでください。
 
 ### Trackball
 

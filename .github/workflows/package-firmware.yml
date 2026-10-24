@@ -22,6 +22,25 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Arrange firmware by sleep mode
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/firmware/sleep-5m dist/firmware/sleep-15m dist/firmware/sleep-30m dist/firmware/sleep-60m dist/firmware/sleep-off dist/firmware/recovery
+          while IFS= read -r -d '' file; do
+            name="$(basename "$file")"
+            case "$name" in
+              sleep-5m_*) bucket="sleep-5m"; clean="${name#sleep-5m_}" ;;
+              sleep-15m_*) bucket="sleep-15m"; clean="${name#sleep-15m_}" ;;
+              sleep-30m_*) bucket="sleep-30m"; clean="${name#sleep-30m_}" ;;
+              sleep-60m_*) bucket="sleep-60m"; clean="${name#sleep-60m_}" ;;
+              sleep-off_*) bucket="sleep-off"; clean="${name#sleep-off_}" ;;
+              settings_reset*) bucket="recovery"; clean="$name" ;;
+              *) bucket="sleep-60m"; clean="$name" ;;
+            esac
+            mv "$file" "dist/firmware/$bucket/$clean"
+          done < <(find dist/firmware -maxdepth 1 -type f -print0)
+
       - name: Add variant manifest
         env:
           BUILD_SHA: ${{ github.event.workflow_run.head_sha }}
@@ -52,8 +71,17 @@ jobs:
           the right central USB endpoint. It does not add multi-finger gestures.
 
           settings_reset is a separate recovery image. Do not flash it as a normal half.
-          The ZIP contains every matrix variant from build.yaml. Select the UF2 matching
-          the side and pointing-device module before flashing.
+
+          Firmware is grouped by automatic-sleep timeout:
+            sleep-5m/    = 5 minutes
+            sleep-15m/   = 15 minutes
+            sleep-30m/   = 30 minutes
+            sleep-60m/   = 1 hour
+            sleep-off/   = automatic sleep disabled
+
+          Each folder contains the same hardware/profile combinations. Select matching
+          right/left UF2 files from one folder before flashing. A separate recovery/
+          folder is used for settings_reset when that image is present.
           EOF
 
       - name: Create firmware ZIP
