@@ -33,7 +33,7 @@ ZIPには次の全パターンが含まれます。
 
 ### Trackball
 
-PMW3610と既存encoder moduleを維持し、`boards/shields/sosho/sosho.dtsi` の `SOSHO_TRACKBALL_CPI`、`SOSHO_TRACKBALL_XY_SCALE_NUM` / `SOSHO_TRACKBALL_XY_SCALE_DEN` を使う。現在の標準ビルドはCPI 200（センサー側の下限）に加えて、水平・垂直軸を反転し、トラックボールの移動量を `5/6`（約83.3%）に減衰させる。スクロールモードは通常移動とは別に、水平軸を維持しつつ垂直方向を反転し、スクロール量を `7/10`（70%）に設定している。値を変更したらfirmwareを再ビルドする。実機の体感値はActions artifactを確認してから導入する。
+PMW3610と既存encoder moduleを維持し、`boards/shields/sosho/sosho.dtsi` の `SOSHO_TRACKBALL_CPI`、`SOSHO_TRACKBALL_XY_SCALE_NUM` / `SOSHO_TRACKBALL_XY_SCALE_DEN` を使う。現在の標準ビルドはCPI 200（センサー側の下限）に加えて、水平・垂直軸を反転し、トラックボールの移動量を `5/6`（約83.3%）に減衰させる。スクロールモードは通常移動とは別に、水平軸を維持しつつ垂直方向を反転し、マッピング後のホイール出力を `7/10`（70%）に設定している。値を変更したらfirmwareを再ビルドする。実機の体感値はActions artifactを確認してから導入する。
 
 レイヤー1の右手中段中央（従来MB3の位置）は、レイヤー4を押下中だけ有効にする `MO(4)` に変更している。レイヤー4ではトラックボールのX/Y入力をスクロール入力へ変換するため、キーを押している間だけスクロールモードになる。ZMK Studioで既存の保存済みキーマップを使用している場合は、同じキーに `MO(4)` を割り当てるか、Restore Stock Settings後に反映する。
 

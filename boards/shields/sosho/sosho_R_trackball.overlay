@@ -18,11 +18,14 @@
     scroller {
         layers = <4>;
         /* Keep horizontal orientation, reverse vertical scroll direction, and
-         * use half the previous scroll amount. */
+         * apply the configured 70% scroll amount. */
         input-processors = <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,
-                           <&zip_xy_scaler SOSHO_SCROLL_XY_SCALE_NUM SOSHO_SCROLL_XY_SCALE_DEN>,
                            <&sosho_axis_lock>,
-                           <&zip_xy_to_scroll_mapper>;
+                           <&zip_xy_to_scroll_mapper>,
+                           /* Scale the final wheel events, rather than the
+                            * pre-mapped sensor deltas, so the scroll gain is
+                            * unambiguous on the host HID report. */
+                           <&zip_scroll_scaler SOSHO_SCROLL_XY_SCALE_NUM SOSHO_SCROLL_XY_SCALE_DEN>;
     };
 };
 
@@ -45,8 +48,8 @@
     scroller {
         layers = <4>;
         input-processors = <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,
-                           <&zip_xy_scaler SOSHO_SCROLL_XY_SCALE_NUM SOSHO_SCROLL_XY_SCALE_DEN>,
                            <&sosho_axis_lock>,
-                           <&zip_xy_to_scroll_mapper>;
+                           <&zip_xy_to_scroll_mapper>,
+                           <&zip_scroll_scaler SOSHO_SCROLL_XY_SCALE_NUM SOSHO_SCROLL_XY_SCALE_DEN>;
     };
 };
