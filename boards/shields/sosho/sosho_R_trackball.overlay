@@ -9,9 +9,8 @@
 &trackball { status = "okay"; };
 &trackball_listener {
     status = "okay";
-    /* The sensor is mounted 90 degrees from the host coordinate convention;
-     * invert the resulting horizontal REL_X event, then apply the 3/4 scale. */
-    input-processors = <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,
+    /* Correct the sensor orientation on both axes, then apply the 3/4 scale. */
+    input-processors = <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
                        <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>;
 };
 
@@ -28,6 +27,6 @@
 &trackball_split { status = "okay"; };
 &trackball_split_listener {
     status = "okay";
-    input-processors = <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,
+    input-processors = <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
                        <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>;
 };
