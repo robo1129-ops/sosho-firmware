@@ -3,4 +3,7 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
-    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@main
+    # Pin the ZMK reusable workflow to a released version.  ZMK main moved
+    # the xiao_ble board to the new board-variant model after the last known
+    # good SO-SHO build, and the old board name then fails before compilation.
+    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@v0.3.0
