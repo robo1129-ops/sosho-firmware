@@ -38,11 +38,11 @@
 #define SOSHO_SCROLL_INERTIA_DECAY_DEN 8
 #define SOSHO_SCROLL_INERTIA_STOP_Q8 20
 
-/* The sensor path already applies the 7/10 build-time scroll scale.  Keep the
+/* The sensor path already applies the 7/20 build-time scroll scale.  Keep the
  * same scale here so the inertial tail starts at the same speed as live
  * motion. */
 #define SOSHO_SCROLL_SCALE_NUM 7
-#define SOSHO_SCROLL_SCALE_DEN 10
+#define SOSHO_SCROLL_SCALE_DEN 20
 
 static struct k_spinlock inertia_lock;
 static int32_t velocity_x_q8;

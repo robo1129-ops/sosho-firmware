@@ -18,7 +18,7 @@
     scroller {
         layers = <4>;
         /* Keep horizontal orientation, reverse vertical scroll direction, and
-         * apply the configured 70% scroll amount. */
+         * apply the configured 35% scroll amount. */
         input-processors = <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,
                            <&sosho_axis_lock>,
                            <&zip_xy_to_scroll_mapper>,
