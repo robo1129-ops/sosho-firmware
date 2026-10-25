@@ -11,9 +11,9 @@ Both use data-ready on P1.07. Source: <https://elekit.co.jp/support/faq/5255>.
 
 ## Webエディターとの対応契約
 
-現在のSO-SHO Webエディターは、右Centralの公式ZMK Studio RPCで実機へ保存できる設定だけを編集画面に表示する。通常キー、修飾キー、JISキー、レイヤー操作、ファームウェアのメタデータに存在するホールド／タップ、マウス・ホイール・Bluetooth・出力操作、CPI・トラックパッド倍率・スクロール倍率の増減が対象である。保存後は実機からキーマップを再読み取りし、送信内容と一致することを確認する。
+現在のSO-SHO Webエディターは、右Centralの公式ZMK Studio RPCで実機へ保存できる設定だけを編集画面に表示する。通常キー、修飾キー、JISキー、レイヤー操作、ファームウェアのメタデータに存在するホールド／タップ、マウス・ホイール・Bluetooth・出力操作、CPI・トラックパッド倍率・スクロール倍率の増減が対象である。SO-SHO拡張RPC対応ファームウェアでは、マクロと実行時スリープ時間も同じUSBまたはBLEのStudio RPC経路で保存できる。保存後は実機から再読み取りし、送信内容と一致することを確認する。
 
-スリープ時間、初期CPI、初期センサー倍率、軸反転、軸固定、センサー配置、ロータリーエンコーダーのsensor-bindings、任意のマクロ定義は、公式ZMK StudioのキーマップRPCだけでは変更できない。これらはビルド時設定またはファームウェア機能であり、Webエディターの実機保存画面からは扱わない。設定ファイルのJSONはキーマップとデフォルトキーマップだけを対象とし、実機へ書き込めない値を成功したように保存しない。
+初期CPI、初期センサー倍率、軸反転、軸固定、センサー配置、ロータリーエンコーダーのsensor-bindingsは、公式ZMK StudioのキーマップRPCだけでは変更できないため、ビルド構成で選択する。スリープ時間とマクロはSO-SHO拡張RPC対応ファームウェアでのみ実機保存できる。設定ファイルのJSONは公式キーマップRPCで扱えるキーマップとデフォルトキーマップを対象とし、マクロとスリープは実機から読み書きできる拡張形式として別途保存する。実機へ書き込めない値を成功したようには扱わない。
 
 ## ビルド構成
 
@@ -58,7 +58,7 @@ ZIPには次の全パターンが各スリープ時間フォルダに含まれ�
 
 ## ポインティングデバイス設定
 
-自動スリープはキーマップRPCで即時変更する値ではなく、ファームウェアのビルド時設定です。Webエディターでは扱わず、ZIP内の希望する `sleep-*` フォルダから左右のUF2を同じ組み合わせで書き込んでください。
+自動スリープは、SO-SHO拡張RPC対応ファームウェアでは実行時にオフまたは分単位で変更できる。未対応の旧ファームウェアや拡張を無効にした構成では、従来どおりビルド時設定となるため、ZIP内の希望する `sleep-*` フォルダから左右のUF2を書き込む。Webエディターは、接続後に実機が `runtime_control` を返した場合だけ保存操作を有効にする。
 
 ### Trackball
 
@@ -88,17 +88,19 @@ Tap danceはファームウェアのkeymap bindingとしてビルド時に定義
 
 ## Studio / USBの状態
 
-右Central側に公式のStudio USB UART transport、`CONFIG_ZMK_STUDIO=y`、Studio unlock bindingを構成する。USBは右CentralのCDC-ACMを使い、左Peripheral側は左右通信専用でPCのStudio終端ではない。現在のSO-SHO Webエディターの書き込み経路は右CentralのUSB/COMに限定する。BLE transportを含むファームウェアを使う場合でも、WebエディターのUSB RPCと同じ保存結果が実機から再読取できることを別途確認する必要がある。
+右Central側に公式のStudio USB UART transport、`CONFIG_ZMK_STUDIO=y`、Studio unlock bindingを構成する。USBは右CentralのCDC-ACMを使い、左Peripheral側は左右通信専用でPCのStudio終端ではない。BLE transportを有効にした右Centralでは、Webエディターが公式のZMK Studio GATTサービスを使い、USBと同じRPCを送受信する。USB／BLEのどちらでも保存結果を実機から再読み取りして一致確認する。
 
 COMポートはUSB CDC/ACMのStudio UART transportであり、BLEをCOMポートとして公開する設定にはならない。Webエディターは右CentralのUSB/COMへ接続し、左Peripheralを編集対象として扱わない。右Central以外を接続した場合は保存を実行せず、対象外であることを表示する。
 
-Web editorには公式Studio protobuf RPCのフレーム生成・応答解析・`get_device_info` / `get_lock_state` / `get_keymap` / `set_layer_binding` / `save_changes` / 再読み取りを実装済み。実機のUSB RPCはUF2導入後に確認する。ZMK公式ドキュメントも、USB利用時は `studio-rpc-usb-uart` snippetと `CONFIG_ZMK_STUDIO=y` を使い、分割キーボードでは中央側だけにUSB endpointを構成する手順を示している。
+Web editorには公式Studio protobuf RPCのフレーム生成・応答解析・`get_device_info` / `get_lock_state` / `get_keymap` / `set_layer_binding` / `save_changes` / 再読み取りに加え、SO-SHO拡張の `macro` / `sosho` サブシステムを実装済み。実機のUSB／BLE RPCは、拡張パッチを適用したUF2導入後に確認する。ZMK公式ドキュメントも、USB利用時は `studio-rpc-usb-uart` snippetと `CONFIG_ZMK_STUDIO=y` を使い、分割キーボードでは中央側だけにUSB endpointを構成する手順を示している。
 
-## マクロの扱い
+## マクロと実行時スリープ
 
-公式ZMK Studio RPCはキーマップ編集用で、マクロ定義の作成・編集・削除RPCを提供していない。そのため、マクロのドラッグ編集、レイテンシ設定、組み合わせキーをWebエディターの実機保存機能として提供しない。ブラウザー内だけに保存される設定を、実機へ書き込めたようには扱わない。
+公式ZMK Studio RPCにはマクロ定義の標準サブシステムがないため、SO-SHO用に `zmk.macro` と `zmk.sosho` の拡張サブシステムを追加している。マクロは16スロット、1スロット224 bytes、最大8ステップで、各ステップはキー、tap／press／release、待ち時間（初期値1 ms）を持つ。Webエディターのドラッグ編集後、USBまたはBLEのStudio RPCで保存し、全スロットを再読み取りして一致を確認する。
 
-ファームウェア側に残る独自マクロ実装や保存形式があっても、現在のUSB Webエディターの対応契約には含めない。マクロを実機で使う場合は、ZMKのkeymap bindingとして定義してファームウェアを再ビルドする。
+スリープ時間は `zmk.sosho` の `get_sleep` / `set_sleep_timeout_ms` で、オフまたは1分単位の1〜1440分を受け付ける。保存値はZephyr settingsへ保存し、次回起動後も読み込む。ZMK core側には、ビルド時の `CONFIG_ZMK_IDLE_SLEEP_TIMEOUT` をデフォルトにしつつ、保存値が0ならスリープを無効化し、正の保存値ならその値を使うフックを適用している。
+
+この拡張はSO-SHO用パッチを適用したファームウェア専用で、公式ZMKの未改造バイナリでは利用できない。Web側は拡張RPCの応答がない場合、マクロ／実行時スリープの保存を成功扱いにしない。
 
 PINを要求する特殊なホスト向けの予備として、Layer 3に数字入力を用意しています。通常レイヤーで右側のLayer 3キーを押している間、右手側の数字キーを使い、右下のキーでENTERを送信できます。通常のWindowsペアリングではPIN入力を使わない構成です。
 

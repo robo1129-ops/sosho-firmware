@@ -55,7 +55,6 @@
 #define SOSHO_STATUS_TOO_LARGE 4
 #define SOSHO_STATUS_BAD_VALUE 5
 
-#define SOSHO_MAX_MACROS 16
 #define SOSHO_MAX_PAYLOAD 224
 #define SOSHO_MAX_STEPS 8
 #define SOSHO_MAX_WAIT_MS 60000U
@@ -162,6 +161,54 @@ static bool valid_macro_blob(const uint8_t *data, uint16_t len, uint8_t expected
     return true;
 }
 
+uint32_t sosho_macro_list_ids(void) {
+    uint32_t ids = 0;
+
+    for (uint8_t id = 0; id < SOSHO_MAX_MACROS; id++) {
+        if (macro_blob_len[id] > 0) {
+            ids |= BIT(id);
+        }
+    }
+
+    return ids;
+}
+
+int sosho_macro_get(uint8_t id, uint8_t *dst, uint16_t capacity, uint16_t *length) {
+    if (id >= SOSHO_MAX_MACROS || dst == NULL || length == NULL) {
+        return -EINVAL;
+    }
+
+    if (macro_blob_len[id] > capacity) {
+        return -ENOSPC;
+    }
+
+    if (macro_blob_len[id] > 0) {
+        memcpy(dst, macro_blob[id], macro_blob_len[id]);
+    }
+    *length = macro_blob_len[id];
+    return 0;
+}
+
+int sosho_macro_set(uint8_t id, const uint8_t *data, uint16_t length) {
+    if (id >= SOSHO_MAX_MACROS || !valid_macro_blob(data, length, id)) {
+        return -EINVAL;
+    }
+
+    memcpy(macro_blob[id], data, length);
+    macro_blob_len[id] = length;
+    return settings_save_one(macro_settings_keys[id], macro_blob[id], length);
+}
+
+int sosho_macro_delete(uint8_t id) {
+    if (id >= SOSHO_MAX_MACROS) {
+        return -EINVAL;
+    }
+
+    memset(macro_blob[id], 0, sizeof(macro_blob[id]));
+    macro_blob_len[id] = 0;
+    return settings_delete(macro_settings_keys[id]);
+}
+
 static void send_response(struct bt_conn *conn, uint8_t op, uint8_t txid, uint8_t status,
                           const uint8_t *data, uint16_t len);
 
@@ -173,6 +220,10 @@ static void response_ccc_changed(const struct bt_gatt_attr *attr, uint16_t value
 int sosho_macro_run(uint8_t id) {
     if (id >= SOSHO_MAX_MACROS || macro_blob_len[id] == 0) {
         return -ENOENT;
+    }
+
+    if (!valid_macro_blob(macro_blob[id], macro_blob_len[id], id)) {
+        return -EINVAL;
     }
 
     const struct device *key_press = zmk_behavior_get_binding(SOSHO_KEY_PRESS_BEHAVIOR);
@@ -294,10 +345,7 @@ static ssize_t command_write(struct bt_conn *conn, const struct bt_gatt_attr *at
         } else {
             uint8_t id = payload[0];
             uint16_t blob_len = payload_len - 1;
-            memcpy(macro_blob[id], &payload[1], blob_len);
-            macro_blob[id][0] = id;
-            macro_blob_len[id] = blob_len;
-            int err = settings_save_one(macro_settings_keys[id], macro_blob[id], blob_len);
+            int err = sosho_macro_set(id, &payload[1], blob_len);
             send_response(conn, op, txid, err ? SOSHO_STATUS_BAD_VALUE : SOSHO_STATUS_OK, NULL, 0);
         }
     } else if (op == SOSHO_OP_SET_BEGIN) {
@@ -333,9 +381,7 @@ static ssize_t command_write(struct bt_conn *conn, const struct bt_gatt_attr *at
             send_response(conn, op, txid, SOSHO_STATUS_BAD_VALUE, NULL, 0);
         } else {
             uint8_t id = pending_blob_id;
-            memcpy(macro_blob[id], pending_blob, pending_blob_len);
-            macro_blob_len[id] = pending_blob_len;
-            int err = settings_save_one(macro_settings_keys[id], macro_blob[id], macro_blob_len[id]);
+            int err = sosho_macro_set(id, pending_blob, pending_blob_len);
             pending_blob_active = false;
             send_response(conn, op, txid, err ? SOSHO_STATUS_BAD_VALUE : SOSHO_STATUS_OK, NULL, 0);
         }
@@ -344,8 +390,7 @@ static ssize_t command_write(struct bt_conn *conn, const struct bt_gatt_attr *at
             send_response(conn, op, txid, SOSHO_STATUS_BAD_VALUE, NULL, 0);
         } else {
             uint8_t id = payload[0];
-            macro_blob_len[id] = 0;
-            int err = settings_delete(macro_settings_keys[id]);
+            int err = sosho_macro_delete(id);
             send_response(conn, op, txid, err ? SOSHO_STATUS_BAD_VALUE : SOSHO_STATUS_OK, NULL, 0);
         }
     } else if (op == SOSHO_OP_RUN) {

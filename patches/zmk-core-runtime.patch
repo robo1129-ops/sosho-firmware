@@ -1,0 +1,64 @@
+diff --git a/app/CMakeLists.txt b/app/CMakeLists.txt
+index c41153c..cbcfbfa 100644
+--- a/app/CMakeLists.txt
++++ b/app/CMakeLists.txt
+@@ -125,6 +125,8 @@ if (CONFIG_ZMK_STUDIO_RPC)
+                         ${ZEPHYR_ZMK_STUDIO_MESSAGES_MODULE_DIR}/proto/zmk/core.proto
+                         ${ZEPHYR_ZMK_STUDIO_MESSAGES_MODULE_DIR}/proto/zmk/behaviors.proto
+                         ${ZEPHYR_ZMK_STUDIO_MESSAGES_MODULE_DIR}/proto/zmk/keymap.proto
++                        ${ZEPHYR_ZMK_STUDIO_MESSAGES_MODULE_DIR}/proto/zmk/macro.proto
++                        ${ZEPHYR_ZMK_STUDIO_MESSAGES_MODULE_DIR}/proto/zmk/sosho.proto
+   )
+ 
+   target_include_directories(app PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+diff --git a/app/include/zmk/activity.h b/app/include/zmk/activity.h
+index 2aad024..15edfbf 100644
+--- a/app/include/zmk/activity.h
++++ b/app/include/zmk/activity.h
+@@ -6,6 +6,13 @@
+ 
+ #pragma once
+ 
++#include <stdint.h>
++
+ enum zmk_activity_state { ZMK_ACTIVITY_ACTIVE, ZMK_ACTIVITY_IDLE, ZMK_ACTIVITY_SLEEP };
+ 
+ enum zmk_activity_state zmk_activity_get_state(void);
++
++/* Returns the inactivity duration before sleep, in milliseconds.  The core
++ * provides the build-time default; SO-SHO firmware may override it with a
++ * persisted runtime setting. */
++uint32_t zmk_activity_get_sleep_timeout_ms(void);
+diff --git a/app/src/activity.c b/app/src/activity.c
+index f4dc356..2105fa7 100644
+--- a/app/src/activity.c
++++ b/app/src/activity.c
+@@ -8,6 +8,7 @@
+ #include <zephyr/init.h>
+ #include <zephyr/kernel.h>
+ #include <zephyr/sys/poweroff.h>
++#include <zephyr/toolchain.h>
+ 
+ #include <zephyr/logging/log.h>
+ 
+@@ -45,7 +46,9 @@ static uint32_t activity_last_uptime;
+ #define MAX_IDLE_MS CONFIG_ZMK_IDLE_TIMEOUT
+ 
+ #if IS_ENABLED(CONFIG_ZMK_SLEEP)
+-#define MAX_SLEEP_MS CONFIG_ZMK_IDLE_SLEEP_TIMEOUT
++__weak uint32_t zmk_activity_get_sleep_timeout_ms(void) {
++    return CONFIG_ZMK_IDLE_SLEEP_TIMEOUT;
++}
+ #endif
+ 
+ int raise_event(void) {
+@@ -75,7 +78,8 @@ void activity_work_handler(struct k_work *work) {
+     int32_t current = k_uptime_get();
+     int32_t inactive_time = current - activity_last_uptime;
+ #if IS_ENABLED(CONFIG_ZMK_SLEEP)
+-    if (inactive_time > MAX_SLEEP_MS && !is_usb_power_present()) {
++    if (inactive_time > (int32_t)zmk_activity_get_sleep_timeout_ms() &&
++        zmk_activity_get_sleep_timeout_ms() > 0 && !is_usb_power_present()) {
+         // Put devices in suspend power mode before sleeping
+         set_state(ZMK_ACTIVITY_SLEEP);
+ 
