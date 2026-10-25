@@ -90,45 +90,45 @@ jobs:
           for bucket in sleep-5m sleep-15m sleep-30m sleep-60m sleep-off; do
             mkdir -p "dist/firmware/${bucket}"
             cat > "dist/firmware/${bucket}/README-ja.txt" <<'EOF'
-            SO-SHO ファームウェア
+          SO-SHO ファームウェア
 
-            このフォルダ内で右側と左側のUF2を1つずつ選び、同じスリープ設定の組み合わせで書き込んでください。
-            右側CentralはUSB接続用、左側は分割Peripheral用です。
-            右側トラックパッド版は物理配置に合わせてX/Y両軸を反転しています。
-            トラックパッドは公式relative modeとprimary tapを使用します。右クリック、長押し右ドラッグ、外周スクロールは非対応です。
-            EOF
+          このフォルダ内で右側と左側のUF2を1つずつ選び、同じスリープ設定の組み合わせで書き込んでください。
+          右側CentralはUSB接続用、左側は分割Peripheral用です。
+          右側トラックパッド版は物理配置に合わせてX/Y両軸を反転しています。
+          トラックパッドは公式relative modeとprimary tapを使用します。右クリック、長押し右ドラッグ、外周スクロールは非対応です。
+          EOF
             cat > "dist/firmware/${bucket}/README-en.txt" <<'EOF'
-            SO-SHO firmware
+          SO-SHO firmware
 
-            Choose one right-side UF2 and one left-side UF2 from this folder and flash the matching sleep profile.
-            The right Central side is the USB host-facing side; the left side is the split Peripheral.
-            Right-side trackpad builds invert both X and Y for the physical placement.
-            Trackpads use the official relative mode and primary tap. Right-click, held right-drag, and edge scrolling are not included.
-            EOF
+          Choose one right-side UF2 and one left-side UF2 from this folder and flash the matching sleep profile.
+          The right Central side is the USB host-facing side; the left side is the split Peripheral.
+          Right-side trackpad builds invert both X and Y for the physical placement.
+          Trackpads use the official relative mode and primary tap. Right-click, held right-drag, and edge scrolling are not included.
+          EOF
             cat > "dist/firmware/${bucket}/README-zh-CN.txt" <<'EOF'
-            SO-SHO 固件
+          SO-SHO 固件
 
-            请从本文件夹选择一个右侧 UF2 和一个左侧 UF2，并使用相同的休眠配置刷写。
-            右侧 Central 连接 USB，左侧作为分体 Peripheral。
-            右侧触控板固件会根据实体方向反转 X/Y 两个轴。
-            触控板使用官方相对模式和主点击。不包含右键、按住右拖以及外圈滚动。
-            EOF
+          请从本文件夹选择一个右侧 UF2 和一个左侧 UF2，并使用相同的休眠配置刷写。
+          右侧 Central 连接 USB，左侧作为分体 Peripheral。
+          右侧触控板固件会根据实体方向反转 X/Y 两个轴。
+          触控板使用官方相对模式和主点击。不包含右键、按住右拖以及外圈滚动。
+          EOF
             cat > "dist/firmware/${bucket}/README-ko.txt" <<'EOF'
-            SO-SHO 펌웨어
+          SO-SHO 펌웨어
 
-            이 폴더에서 오른쪽 UF2 하나와 왼쪽 UF2 하나를 선택하고 같은 절전 설정으로 플래시하세요.
-            오른쪽 Central은 USB 연결용이며 왼쪽은 분할 Peripheral입니다.
-            오른쪽 트랙패드 펌웨어는 실제 배치에 맞춰 X/Y 축을 모두 반전합니다.
-            트랙패드는 공식 상대 모드와 기본 탭을 사용합니다. 우클릭, 누른 상태의 우 드래그, 가장자리 스크롤은 포함하지 않습니다.
-            EOF
+          이 폴더에서 오른쪽 UF2 하나와 왼쪽 UF2 하나를 선택하고 같은 절전 설정으로 플래시하세요.
+          오른쪽 Central은 USB 연결용이며 왼쪽은 분할 Peripheral입니다.
+          오른쪽 트랙패드 펌웨어는 실제 배치에 맞춰 X/Y 축을 모두 반전합니다.
+          트랙패드는 공식 상대 모드와 기본 탭을 사용합니다. 우클릭, 누른 상태의 우 드래그, 가장자리 스크롤은 포함하지 않습니다.
+          EOF
             cat > "dist/firmware/${bucket}/README-th.txt" <<'EOF'
-            เฟิร์มแวร์ SO-SHO
+          เฟิร์มแวร์ SO-SHO
 
-            เลือกไฟล์ UF2 ฝั่งขวาและฝั่งซ้ายอย่างละหนึ่งไฟล์จากโฟลเดอร์นี้ และแฟลชด้วยการตั้งค่าสลีปเดียวกัน
-            ฝั่งขวา Central ใช้เชื่อมต่อ USB ส่วนฝั่งซ้ายเป็น Peripheral แบบแยกส่วน
-            เฟิร์มแวร์แทร็กแพดฝั่งขวาจะกลับแกน X/Y ให้ตรงกับตำแหน่งจริง
-            แทร็กแพดใช้โหมดสัมพัทธ์อย่างเป็นทางการและการแตะหลัก ไม่รวมคลิกขวา การลากขวาขณะกดค้าง หรือการเลื่อนขอบ
-            EOF
+          เลือกไฟล์ UF2 ฝั่งขวาและฝั่งซ้ายอย่างละหนึ่งไฟล์จากโฟลเดอร์นี้ และแฟลชด้วยการตั้งค่าสลีปเดียวกัน
+          ฝั่งขวา Central ใช้เชื่อมต่อ USB ส่วนฝั่งซ้ายเป็น Peripheral แบบแยกส่วน
+          เฟิร์มแวร์แทร็กแพดฝั่งขวาจะกลับแกน X/Y ให้ตรงกับตำแหน่งจริง
+          แทร็กแพดใช้โหมดสัมพัทธ์อย่างเป็นทางการและการแตะหลัก ไม่รวมคลิกขวา การลากขวาขณะกดค้าง หรือการเลื่อนขอบ
+          EOF
           done
 
       - name: Create firmware ZIP
