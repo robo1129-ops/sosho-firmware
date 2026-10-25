@@ -1,32 +1,34 @@
 #include "sosho_R.dtsi"
 
-/* Alternate central variant: RIGHT is the central trackpad side. */
+/* Alternate central variant: RIGHT is the central trackpad side.
+ * The right-side module is rotated relative to the left-side module, so
+ * both axes are inverted here. Use the official relative Pinnacle path;
+ * it keeps movement and primary tap independent of absolute coordinates. */
 &spi0 { status = "okay"; };
+
+/* Expose one unambiguous CDC-ACM endpoint for the web editor. */
+&board_cdc_acm_uart { status = "disabled"; };
+
 &glidepoint {
     status = "okay";
-    data-mode = "absolute";
-    clipping-enable;
-    active-range-x-min = <128>;
-    active-range-x-max = <1920>;
-    active-range-y-min = <64>;
-    active-range-y-max = <1472>;
+    invert-x;
+    invert-y;
+    data-mode = "relative";
+    primary-tap-enable;
     sensitivity = "1x";
 };
 &glidepoint_listener {
     status = "okay";
-    input-processors = <&sosho_trackpad_edge_scroll>,
-                       <&sosho_trackpad_long_press>,
-                       <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
+    input-processors = <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
 };
 
 /* The central can also receive the left peripheral's trackpad input. */
 &glidepoint_split { status = "okay"; };
 &glidepoint_split_listener {
     status = "okay";
-    /* The split peripheral uses the same absolute path as the local pad. */
-    input-processors = <&sosho_trackpad_edge_scroll>,
-                       <&sosho_trackpad_long_press>,
-                       <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
+    /* A left peripheral keeps its own left-side orientation and uses the
+     * same relative input path as the normal trackball central profile. */
+    input-processors = <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
 };
 
 /* Keep the alternate left-trackball combination available. */

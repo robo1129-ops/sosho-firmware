@@ -7,6 +7,12 @@
  */
 &spi1 { status = "okay"; };
 &trackball { status = "okay"; };
+
+/* The XIAO board definition also creates a console CDC-ACM port. Keep only
+ * the Studio RPC CDC-ACM endpoint on the central so Web Serial cannot select
+ * a silent console port by mistake. */
+&board_cdc_acm_uart { status = "disabled"; };
+
 &trackball_listener {
     status = "okay";
     /* Correct the sensor orientation on both axes, then apply the 3/4 scale. */
@@ -33,11 +39,11 @@
 &glidepoint_split { status = "okay"; };
 &glidepoint_split_listener {
     status = "okay";
-    /* The left peripheral uses the official relative path.  This keeps
-     * cursor movement and BTN_TOUCH reliable over the split link; the
-     * long-press processor below still supplies the configured right click. */
-    input-processors = <&sosho_trackpad_long_press>,
-                       <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
+    /* The left peripheral uses the official relative path. Keep raw
+     * BTN_TOUCH events so the normal ZMK pointing listener can generate a
+     * reliable primary click. Right-click/edge-scroll gesture processors
+     * are intentionally not part of the release profile. */
+    input-processors = <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
 };
 
 /* Keep the alternate left-trackball combination available. */

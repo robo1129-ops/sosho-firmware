@@ -12,11 +12,12 @@ Both use data-ready on P1.07. Source: <https://elekit.co.jp/support/faq/5255>.
 ## ビルド構成
 
 - 日常構成: `sosho_R_trackball`（右Central） + `sosho_L_trackpad`（左Peripheral）
+- 右側にトラックパッドを配置する構成では、右モジュールの実装向きに合わせてX/Yの両軸を反転する
 - 無操作時の自動スリープは、5分・15分・30分・1時間・スリープなしの5種類をビルドする。各種類はZIP内の `sleep-5m/`、`sleep-15m/`、`sleep-30m/`、`sleep-60m/`、`sleep-off/` フォルダに分けて収録する
 - `build.yaml` は右CentralのStudio USB endpointと `CONFIG_ZMK_STUDIO=y` を維持する
 - settings reset buildと、他のtrackball / trackpad組み合わせもmatrixに残す
 - 最新成功ビルドの全バリエーションZIP: https://github.com/robo1129-ops/sosho-firmware/releases/download/latest/sosho-firmware-latest.zip
-- 全スリープ設定・全モジュール構成のローカル検証済みZIP: https://github.com/robo1129-ops/sosho-firmware/raw/main/downloads/sosho-firmware-latest-local.zip
+- 全スリープ設定・全モジュール構成のZIP（Actionsの最新成功ビルド）: https://github.com/robo1129-ops/sosho-firmware/releases/download/latest/sosho-firmware-latest.zip
 - ZIPを作るActions: https://github.com/robo1129-ops/sosho-firmware/actions/workflows/package-firmware.yml
 
 ## フラッシュ容量とマクロ保存容量
@@ -67,15 +68,11 @@ Webアプリでは、左右それぞれの反時計回り・時計回りを通�
 
 ### Trackpad
 
-既存のGlidePoint / pointing input pathを維持し、`SOSHO_TRACKPAD_XY_SCALE_NUM` / `SOSHO_TRACKPAD_XY_SCALE_DEN` をmovement scaleとして使う。無反応を起こした絶対座標の独自変換は、通常の復旧ビルドでは使用しない。公式Zephyr Pinnacleドライバのrelative modeから出る `INPUT_REL_X` / `INPUT_REL_Y` と `INPUT_BTN_TOUCH` を、分割入力リスナーでそのまま処理するため、接触イベントのタイミングに依存して移動を全て捨てることがない。Pinnacleの感度は `1x`、中央側の移動倍率は `1:1` に戻した。SO-SHOの実機向きに合わせてX軸だけを反転し、Y軸は標準方向にする。値を変更したら再ビルドが必要で、Webアプリの実行時設定としては扱わない。
+既存のGlidePoint / pointing input pathを維持し、`SOSHO_TRACKPAD_XY_SCALE_NUM` / `SOSHO_TRACKPAD_XY_SCALE_DEN` をmovement scaleとして使う。無反応や瞬間移動を起こした絶対座標の独自変換は全構成から外し、公式Zephyr Pinnacleドライバのrelative modeを使う。relative modeから出る `INPUT_REL_X` / `INPUT_REL_Y` と `INPUT_BTN_TOUCH` をそのままZMKの入力リスナーへ渡すため、接触位置を変えても座標ジャンプを生成しない。Pinnacleの感度は `1x`、移動倍率は `1:1` である。
 
-短いタップは左クリック、500ms以上の接触は右クリックとして扱い、長押し後の移動は右ボタンを押したままのドラッグとして出力する。接触後の移動量が24カウント以内なら、指の小さなずれを許容してタップを維持する。24カウントを超える移動はドラッグとして扱い、誤クリックを出さない。短いタップを2回行った場合は、2回の標準左クリックを送るため、ホストOSがダブルクリックとして解釈できる。これは公式relative modeの `BTN_TOUCH` を中央側の長押しプロセッサへ渡す構成で、USB/BLEのホスト経路に依存しない。
+短いタップは公式ドライバのprimary tapによる左クリックとして扱う。短いタップを2回行った場合は、2回の標準左クリックを送り、ホストOSがダブルクリックとして解釈できる。今回の安定版では右クリック判定、長押し右ドラッグ、トラックパッド外周スクロールは実装しない。相対モードでは接触座標が得られないため、外周判定を安全に行えないためである。スクロールは従来どおり右トラックボールのスクロールレイヤーを使用する。
 
-以前のabsolute modeでは、接触開始／終了のX/Y/Zフレームを独自に組み替えて外周スクロールを実装していたが、個体や分割転送のイベント順序が異なるとポインター移動まで抑止される問題があった。そのため今回の復旧版では外周をなぞる自動スクロールを一旦無効化し、標準のポインター移動・クリック・右ドラッグを優先する。スクロールは従来どおり右トラックボールのスクロールレイヤーを使用する。外周スクロールを再導入する場合は、relative pathを壊さない別入力経路として検証する必要がある。
-
-長押しの判定値は `boards/shields/sosho/sosho.dtsi` の `long-press-ms = <500>` で管理する。入力イベントをUSB/BLEのどちらかに依存して処理せず、ZMKの中央側入力リスナーの前段で右ボタンへ変換するため、両方のホスト接続方式で同じ動作になる。
-
-タッチパッド側の外周スクロールは、この復旧版では無効です。現在の公式relative modeには接触座標がなく、外周判定を安全に行えないためです。過去に絶対座標を独自に再解釈した際、接触位置の変化をポインターの瞬間移動や無反応に変えていたため、クリックと移動の安定性を優先しています。スクロールは従来どおり右トラックボールのスクロールレイヤーを使用します。
+左側トラックパッドはSO-SHO左側の実装向きに合わせてX軸を反転する。右側トラックパッド構成（`sosho_R_trackpad`）は、右側に配置したときの物理向きに合わせてX/Yの両軸を反転する。これにより、右側配置時の上下左右反転を構成ごとに補正する。値を変更したら再ビルドが必要で、Webアプリの実行時設定としては扱わない。
 
 Pinnacleは単一接触デバイスなので、指の本数、二指タップ、二指ダブルタップ、二指スクロール、ピンチはこのハードウェア／公式ドライバの入力だけでは実装できない。今回のダブルクリックは、2回の短いタップを標準の左クリック2回としてホストOSへ渡す方式である。多指ジェスチャーが必要な場合は、多点接触データを出せる別のタッチコントローラが必要になる。
 
@@ -109,7 +106,7 @@ Web editorでは、マクロを編集してJSONへ保存・読み込みできま
 2. 生成物のboard/shield、Studio USB endpoint、BLE設定、settings resetを確認する
 3. 一度だけUSBで導入し、右Centralがホストに接続できること、左Peripheralのキーが右Central経由で入力されることを実機で確認する
 4. 右CentralのUSBから公式Studio RPCのkeymap read/write/re-readを実機で確認する
-5. 標準トラックパッドプロファイルでポインター移動、タップの左クリック、2回タップのホスト側ダブルクリック、500ms長押しの右クリック、長押し移動の右ドラッグを確認する。スクロールは右トラックボールのスクロールレイヤーで確認する
+5. 標準トラックパッドプロファイルでポインター移動、タップの左クリック、2回タップのホスト側ダブルクリックを確認する。右クリックと外周スクロールは今回の安定版では対象外。スクロールは右トラックボールのスクロールレイヤーで確認する
 6. 不具合時は直前のUF2へ戻せるようにする
 
 このリポジトリのソース変更とActionsビルド以外の物理キーボード操作、flash、再flashは行っていない。実機でのUSB RPC、BLE Studio、トラックパッド操作確認は、生成UF2導入後にユーザー側で確認する必要がある。
