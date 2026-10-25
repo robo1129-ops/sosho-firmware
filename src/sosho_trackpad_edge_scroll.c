@@ -6,6 +6,14 @@
  * consumes, while reserving the outer ring of the round pad for vertical
  * wheel scrolling.  The Z (pressure) sample is also converted to
  * BTN_TOUCH, so the existing tap/long-press processor keeps working.
+ *
+ * The driver reports X, Y, and Z as one sample (X/Y have sync=false and Z
+ * has sync=true).  Do not emit the current X/Y delta immediately: the
+ * release sample can contain X=0/Y=0, and treating it as movement causes a
+ * large pointer jump.  One sample is held until its Z state is known; this
+ * also suppresses the initial contact delta.  The resulting one-sample
+ * latency is preferable to a release jump and is not visible during normal
+ * use.
  */
 
 #define DT_DRV_COMPAT sosho_input_processor_trackpad_edge_scroll
@@ -29,6 +37,7 @@
 #define SOSHO_PAD_RADIUS_X 896
 #define SOSHO_PAD_RADIUS_Y 704
 #define SOSHO_RADIUS_SCALE 100
+#define SOSHO_MAX_FRAME_DELTA 128
 
 struct sosho_edge_config {
     uint8_t edge_band_percent;
@@ -39,9 +48,18 @@ struct sosho_edge_state {
     const struct device *source;
     int32_t x;
     int32_t y;
-    int32_t pending_dx;
+    int32_t frame_dx;
+    int32_t frame_dy;
+    int32_t last_dx;
+    int32_t last_dy;
+    int32_t last_x;
+    int32_t last_y;
     int32_t scroll_remainder;
     bool have_position;
+    bool frame_x_seen;
+    bool frame_y_seen;
+    bool frame_release_suspected;
+    bool frame_valid;
     bool touch_active;
     bool edge_active;
 };
@@ -61,9 +79,18 @@ static struct sosho_edge_state *state_for(const struct device *dev,
     if (state->source != event->dev && state->source != NULL) {
         state->x = 0;
         state->y = 0;
-        state->pending_dx = 0;
+        state->frame_dx = 0;
+        state->frame_dy = 0;
+        state->last_dx = 0;
+        state->last_dy = 0;
+        state->last_x = 0;
+        state->last_y = 0;
         state->scroll_remainder = 0;
         state->have_position = false;
+        state->frame_x_seen = false;
+        state->frame_y_seen = false;
+        state->frame_release_suspected = false;
+        state->frame_valid = false;
         state->touch_active = false;
         state->edge_active = false;
     }
@@ -88,6 +115,34 @@ static int32_t divide_with_remainder(int32_t value, int32_t divider, int32_t *re
     int32_t result = total / divider;
     *remainder = total - (result * divider);
     return result;
+}
+
+static int32_t clamp_frame_delta(int32_t delta) {
+    return CLAMP(delta, -SOSHO_MAX_FRAME_DELTA, SOSHO_MAX_FRAME_DELTA);
+}
+
+static int32_t normalized_radius_component(int32_t value, int32_t center,
+                                           int32_t radius) {
+    return ((value - center) * SOSHO_RADIUS_SCALE) / radius;
+}
+
+static int32_t previous_frame_scroll(const struct sosho_edge_state *state,
+                                     const struct sosho_edge_config *config,
+                                     int32_t *remainder) {
+    const int32_t radial_x = normalized_radius_component(state->last_x,
+                                                         SOSHO_PAD_CENTER_X,
+                                                         SOSHO_PAD_RADIUS_X);
+    const int32_t radial_y = normalized_radius_component(state->last_y,
+                                                         SOSHO_PAD_CENTER_Y,
+                                                         SOSHO_PAD_RADIUS_Y);
+    const int32_t denominator = config->scroll_divider * SOSHO_RADIUS_SCALE;
+    const int64_t cross = (-(int64_t)state->last_dx * radial_y) +
+                          ((int64_t)state->last_dy * radial_x);
+
+    /* Normalize the tangential displacement before applying the requested
+     * scroll divider.  The old raw-coordinate cross product multiplied each
+     * movement by roughly the pad radius, which made scrolling jumpy. */
+    return divide_with_remainder((int32_t)cross, denominator, remainder);
 }
 
 static void emit_relative(struct input_event *event, uint16_t code, int32_t value, bool sync) {
@@ -121,11 +176,21 @@ static int edge_scroll_handle_event(const struct device *dev, struct input_event
         int32_t delta_x = state->have_position ? next_x - state->x : 0;
         state->x = next_x;
         state->have_position = true;
-        state->pending_dx = delta_x;
-        /* The listener cannot consume ABS events, so turn even a suppressed
-         * first contact into a zero relative event. */
+        state->frame_dx = clamp_frame_delta(delta_x);
+        state->frame_x_seen = true;
+        /* Cirque's inactive report uses zero coordinates, outside its
+         * active window (X starts at 128).  Mark the complete report so the
+         * X event cannot replay the previous movement on release. */
+        state->frame_release_suspected = state->frame_release_suspected || next_x == 0;
+
+        /* Output the previous complete sample.  The current sample is held
+         * until its Z event tells us whether it was a real touch or release. */
         emit_relative(event, INPUT_REL_X,
-                      state->touch_active && !state->edge_active ? delta_x : 0, false);
+                      state->frame_valid && state->touch_active && !state->edge_active &&
+                              !state->frame_release_suspected
+                          ? state->last_dx
+                          : 0,
+                      false);
         break;
     }
     case INPUT_ABS_Y: {
@@ -133,33 +198,55 @@ static int edge_scroll_handle_event(const struct device *dev, struct input_event
         int32_t delta_y = state->have_position ? next_y - state->y : 0;
         state->y = next_y;
         state->have_position = true;
-        if (state->touch_active && state->edge_active) {
+        state->frame_dy = clamp_frame_delta(delta_y);
+        state->frame_y_seen = true;
+        state->frame_release_suspected = state->frame_release_suspected || next_y == 0;
+
+        if (state->frame_valid && state->touch_active && state->edge_active &&
+            !state->frame_release_suspected) {
             /* Tangential motion around the circumference becomes vertical
              * wheel motion.  Radial motion contributes zero, avoiding
              * diagonal scrolling at the edge. */
-            int32_t radial_x = state->x - SOSHO_PAD_CENTER_X;
-            int32_t radial_y = state->y - SOSHO_PAD_CENTER_Y;
-            int32_t tangent = (-state->pending_dx * radial_y) + (delta_y * radial_x);
-            int32_t scroll = divide_with_remainder(tangent, config->scroll_divider,
+            int32_t scroll = previous_frame_scroll(state, config,
                                                     &state->scroll_remainder);
             emit_relative(event, INPUT_REL_WHEEL, scroll, true);
         } else {
             emit_relative(event, INPUT_REL_Y,
-                          state->touch_active ? delta_y : 0, true);
+                          state->frame_valid && state->touch_active && !state->edge_active &&
+                                  !state->frame_release_suspected
+                              ? state->last_dy
+                              : 0,
+                          true);
         }
-        state->pending_dx = 0;
         break;
     }
     case INPUT_ABS_Z: {
         bool pressed = event->value > 0;
-        if (pressed && !state->touch_active) {
+        bool was_pressed = state->touch_active;
+
+        if (pressed && !was_pressed) {
             state->edge_active = state->have_position && on_edge(config, state->x, state->y);
             state->scroll_remainder = 0;
+            /* Do not emit the jump from the idle position to the first
+             * contact.  The next held sample will become the first valid
+             * movement sample. */
+            state->frame_valid = false;
+        } else if (pressed && was_pressed) {
+            state->frame_valid = state->frame_x_seen && state->frame_y_seen;
+            state->last_dx = state->frame_dx;
+            state->last_dy = state->frame_dy;
+            state->last_x = state->x;
+            state->last_y = state->y;
         } else if (!pressed) {
             state->edge_active = false;
             state->scroll_remainder = 0;
+            /* Never expose the release sample's coordinates as movement. */
+            state->frame_valid = false;
         }
         state->touch_active = pressed;
+        state->frame_x_seen = false;
+        state->frame_y_seen = false;
+        state->frame_release_suspected = false;
         event->type = INPUT_EV_KEY;
         event->code = INPUT_BTN_TOUCH;
         event->value = pressed ? 1 : 0;

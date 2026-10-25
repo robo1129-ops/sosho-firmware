@@ -16,7 +16,7 @@ Both use data-ready on P1.07. Source: <https://elekit.co.jp/support/faq/5255>.
 - `build.yaml` は右CentralのStudio USB endpointと `CONFIG_ZMK_STUDIO=y` を維持する
 - settings reset buildと、他のtrackball / trackpad組み合わせもmatrixに残す
 - 最新成功ビルドの全バリエーションZIP: https://github.com/robo1129-ops/sosho-firmware/releases/download/latest/sosho-firmware-latest.zip
-- トラックパッド操作追加ビルド（直近の `main` から直接ダウンロード）: https://github.com/robo1129-ops/sosho-firmware/raw/main/downloads/sosho-trackpad-gestures-sleep-off.zip
+- 全スリープ設定・全モジュール構成のローカル検証済みZIP: https://github.com/robo1129-ops/sosho-firmware/raw/main/downloads/sosho-firmware-latest-local.zip
 - ZIPを作るActions: https://github.com/robo1129-ops/sosho-firmware/actions/workflows/package-firmware.yml
 
 ## フラッシュ容量とマクロ保存容量
@@ -70,6 +70,8 @@ Webアプリでは、左右それぞれの反時計回り・時計回りを通�
 既存のGlidePoint / pointing input pathを維持し、`SOSHO_TRACKPAD_XY_SCALE_NUM` / `SOSHO_TRACKPAD_XY_SCALE_DEN` をmovement scaleとして使う。ジェスチャー判定を行う構成ではPinnacleをabsolute modeで読み取り、現在は入力を減衰させない `1/1` と、Pinnacleの最大感度 `1x` にしている。値を変更したら再ビルドが必要で、Webアプリの実行時設定としては扱わない。
 
 公式ZephyrのCirque Pinnacleドライバが出す `INPUT_ABS_X` / `INPUT_ABS_Y` / `INPUT_ABS_Z` を、中央側の専用入力プロセッサで通常操作とジェスチャーへ分離する。短いタップは左クリック、500ms以上の接触は右クリックとして扱い、長押し後の移動は右ボタンを押したままのドラッグとして出力する。短いタップを2回行った場合は、2回の標準左クリックを送るため、ホストOSがダブルクリックとして解釈できる。標準の `sosho_L_trackpad` と中央側のトラックパッド構成に同じ経路を適用している。
+
+X/Y/Zは1回のPinnacleレポートとして扱い、X/Yをその場で確定せず、Zで接触状態を確認してから1サンプル遅延で出力する。これにより、離した瞬間にドライバが返すX=0/Y=0をポインター移動として誤って処理するジャンプを抑える。接触開始時の座標も抑止し、各フレームの異常な差分は±128に制限する。外周スクロールは生の座標の外積ではなく、正規化した半径の接線成分を使うため、パッドの位置によってスクロール量が急増しない。
 
 長押しの判定値は `boards/shields/sosho/sosho.dtsi` の `long-press-ms = <500>` で管理する。入力イベントをUSB/BLEのどちらかに依存して処理せず、ZMKの中央側入力リスナーの前段で右ボタンへ変換するため、両方のホスト接続方式で同じ動作になる。
 
