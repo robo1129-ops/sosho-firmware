@@ -20,9 +20,15 @@
 #include <drivers/input_processor.h>
 
 #define SOSHO_EDGE_STATE_COUNT 8
+/* Cirque's default active window is rectangular (128..1920, 64..1472),
+ * while the physical SO-SHO pad is round.  Normalize each axis separately
+ * before testing the radius; using one raw-coordinate radius makes the top,
+ * bottom, left and right edges disagree and causes jumpy corner behavior. */
 #define SOSHO_PAD_CENTER_X 1024
 #define SOSHO_PAD_CENTER_Y 768
-#define SOSHO_PAD_RADIUS 768
+#define SOSHO_PAD_RADIUS_X 896
+#define SOSHO_PAD_RADIUS_Y 704
+#define SOSHO_RADIUS_SCALE 100
 
 struct sosho_edge_config {
     uint8_t edge_band_percent;
@@ -66,11 +72,13 @@ static struct sosho_edge_state *state_for(const struct device *dev,
 }
 
 static bool on_edge(const struct sosho_edge_config *config, int32_t x, int32_t y) {
-    int32_t dx = x - SOSHO_PAD_CENTER_X;
-    int32_t dy = y - SOSHO_PAD_CENTER_Y;
-    int32_t radius = (SOSHO_PAD_RADIUS * config->edge_band_percent) / 100;
-    int32_t distance_squared = (dx * dx) + (dy * dy);
-    int32_t radius_squared = radius * radius;
+    int64_t dx = ((int64_t)x - SOSHO_PAD_CENTER_X) * SOSHO_RADIUS_SCALE /
+                 SOSHO_PAD_RADIUS_X;
+    int64_t dy = ((int64_t)y - SOSHO_PAD_CENTER_Y) * SOSHO_RADIUS_SCALE /
+                 SOSHO_PAD_RADIUS_Y;
+    int64_t distance_squared = (dx * dx) + (dy * dy);
+    int64_t radius = config->edge_band_percent;
+    int64_t radius_squared = radius * radius;
 
     return distance_squared >= radius_squared;
 }

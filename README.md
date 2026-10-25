@@ -16,6 +16,7 @@ Both use data-ready on P1.07. Source: <https://elekit.co.jp/support/faq/5255>.
 - `build.yaml` は右CentralのStudio USB endpointと `CONFIG_ZMK_STUDIO=y` を維持する
 - settings reset buildと、他のtrackball / trackpad組み合わせもmatrixに残す
 - 最新成功ビルドの全バリエーションZIP: https://github.com/robo1129-ops/sosho-firmware/releases/download/latest/sosho-firmware-latest.zip
+- トラックパッド操作追加ビルド（直近の `main` から直接ダウンロード）: https://github.com/robo1129-ops/sosho-firmware/raw/main/downloads/sosho-trackpad-gestures-sleep-off.zip
 - ZIPを作るActions: https://github.com/robo1129-ops/sosho-firmware/actions/workflows/package-firmware.yml
 
 ## フラッシュ容量とマクロ保存容量
@@ -66,13 +67,15 @@ Webアプリでは、左右それぞれの反時計回り・時計回りを通�
 
 ### Trackpad
 
-既存のGlidePoint / pointing input pathを維持し、`SOSHO_TRACKPAD_XY_SCALE_NUM` / `SOSHO_TRACKPAD_XY_SCALE_DEN` をmovement scaleとして使う。現在は入力を減衰させない `1/1` と、Pinnacleの最大感度 `1x` にしている。値を変更したら再ビルドが必要で、Webアプリの実行時設定としては扱わない。
+既存のGlidePoint / pointing input pathを維持し、`SOSHO_TRACKPAD_XY_SCALE_NUM` / `SOSHO_TRACKPAD_XY_SCALE_DEN` をmovement scaleとして使う。ジェスチャー判定を行う構成ではPinnacleをabsolute modeで読み取り、現在は入力を減衰させない `1/1` と、Pinnacleの最大感度 `1x` にしている。値を変更したら再ビルドが必要で、Webアプリの実行時設定としては扱わない。
 
-公式ZephyrのCirque Pinnacleドライバに `primary-tap-enable` を設定すると、単一指の接触が `INPUT_BTN_TOUCH` として出力される。本ファームウェアでは、そのイベントを中央側の専用入力プロセッサで判定する。短いタップは左クリック、500ms以上の接触は右クリックとして扱い、長押し後の移動は右ボタンを押したままのドラッグとして出力する。短いタップを2回行った場合は、従来どおりホストOSがダブルクリックとして解釈できる。標準の `sosho_L_trackpad` と中央側のトラックパッド構成に同じ経路を適用している。
+公式ZephyrのCirque Pinnacleドライバが出す `INPUT_ABS_X` / `INPUT_ABS_Y` / `INPUT_ABS_Z` を、中央側の専用入力プロセッサで通常操作とジェスチャーへ分離する。短いタップは左クリック、500ms以上の接触は右クリックとして扱い、長押し後の移動は右ボタンを押したままのドラッグとして出力する。短いタップを2回行った場合は、2回の標準左クリックを送るため、ホストOSがダブルクリックとして解釈できる。標準の `sosho_L_trackpad` と中央側のトラックパッド構成に同じ経路を適用している。
 
 長押しの判定値は `boards/shields/sosho/sosho.dtsi` の `long-press-ms = <500>` で管理する。入力イベントをUSB/BLEのどちらかに依存して処理せず、ZMKの中央側入力リスナーの前段で右ボタンへ変換するため、両方のホスト接続方式で同じ動作になる。
 
-Pinnacleは単一接触デバイスなので、指の本数、二指タップ、二指ダブルタップ、二指スクロール、ピンチはこのハードウェア／公式ドライバの入力だけでは実装できない。これらを時間判定で偽装する実装は行わない。多指ジェスチャーが必要な場合は、多点接触データを出せる別のタッチコントローラが必要になる。
+タッチ開始点が丸形パッドの外周帯（正規化半径82%以上）にある場合はエッジスクロールモードになる。外周を円周方向になぞった移動だけを `INPUT_REL_WHEEL` の上下スクロールへ変換し、半径方向の移動と斜めの同時スクロールは捨てる。スクロール量は `scroll-divider = <4>` で減衰させる。中央付近で開始した接触は従来どおりポインター移動になり、途中で外周へ移動しても操作モードは変わらないため、通常のポインター操作が突然スクロールへ切り替わらない。
+
+Pinnacleは単一接触デバイスなので、指の本数、二指タップ、二指ダブルタップ、二指スクロール、ピンチはこのハードウェア／公式ドライバの入力だけでは実装できない。今回のダブルクリックは、2回の短いタップを標準の左クリック2回としてホストOSへ渡す方式である。多指ジェスチャーが必要な場合は、多点接触データを出せる別のタッチコントローラが必要になる。
 
 ### Tap dance
 
@@ -104,7 +107,7 @@ Web editorでは、マクロを編集してJSONへ保存・読み込みできま
 2. 生成物のboard/shield、Studio USB endpoint、BLE設定、settings resetを確認する
 3. 一度だけUSBで導入し、右Centralがホストに接続できること、左Peripheralのキーが右Central経由で入力されることを実機で確認する
 4. 右CentralのUSBから公式Studio RPCのkeymap read/write/re-readを実機で確認する
-5. 標準トラックパッドプロファイルで一次タップ、長押し移動のドラッグ、ホスト側ダブルクリックを確認する
+5. 標準トラックパッドプロファイルでタップの左クリック、2回タップのホスト側ダブルクリック、500ms長押しの右クリック、長押し移動の右ドラッグ、外周円周操作の上下スクロールを確認する
 6. 不具合時は直前のUF2へ戻せるようにする
 
 このリポジトリのソース変更とActionsビルド以外の物理キーボード操作、flash、再flashは行っていない。実機でのUSB RPC、BLE Studio、トラックパッド操作確認は、生成UF2導入後にユーザー側で確認する必要がある。

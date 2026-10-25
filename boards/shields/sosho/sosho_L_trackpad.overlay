@@ -4,10 +4,14 @@
 &glidepoint {
     status = "okay";
     invert-x;
-    /* Use the official relative mode. This keeps movement on the standard
-     * ZMK input path and avoids losing the trackpad when the split link is
-     * active. Primary taps remain enabled by the shared shield definition. */
-    data-mode = "relative";
+    /* Absolute samples let the SO-SHO input processor distinguish normal
+     * pointer movement from the outer-ring scroll gesture. */
+    data-mode = "absolute";
+    clipping-enable;
+    active-range-x-min = <128>;
+    active-range-x-max = <1920>;
+    active-range-y-min = <64>;
+    active-range-y-max = <1472>;
     sensitivity = "1x";
 };
 &glidepoint_split {

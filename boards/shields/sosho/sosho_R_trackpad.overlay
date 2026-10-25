@@ -4,12 +4,18 @@
 &spi0 { status = "okay"; };
 &glidepoint {
     status = "okay";
-    data-mode = "relative";
+    data-mode = "absolute";
+    clipping-enable;
+    active-range-x-min = <128>;
+    active-range-x-max = <1920>;
+    active-range-y-min = <64>;
+    active-range-y-max = <1472>;
     sensitivity = "1x";
 };
 &glidepoint_listener {
     status = "okay";
-    input-processors = <&sosho_trackpad_long_press>,
+    input-processors = <&sosho_trackpad_edge_scroll>,
+                       <&sosho_trackpad_long_press>,
                        <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
 };
 
@@ -17,8 +23,9 @@
 &glidepoint_split { status = "okay"; };
 &glidepoint_split_listener {
     status = "okay";
-    /* Relative reports are forwarded by the split input device. */
-    input-processors = <&sosho_trackpad_long_press>,
+    /* The split peripheral uses the same absolute path as the local pad. */
+    input-processors = <&sosho_trackpad_edge_scroll>,
+                       <&sosho_trackpad_long_press>,
                        <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
 };
 

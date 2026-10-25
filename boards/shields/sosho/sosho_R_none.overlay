@@ -7,8 +7,10 @@
 &glidepoint_split { status = "okay"; };
 &glidepoint_split_listener {
     status = "okay";
-    /* The peripheral uses the official relative Pinnacle path. */
-    input-processors = <&sosho_trackpad_long_press>,
+    /* The peripheral uses the absolute path so the same gestures work when
+     * the opposite module is a blank/dummy module. */
+    input-processors = <&sosho_trackpad_edge_scroll>,
+                       <&sosho_trackpad_long_press>,
                        <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
 };
 

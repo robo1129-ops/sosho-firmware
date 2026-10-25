@@ -33,9 +33,10 @@
 &glidepoint_split { status = "okay"; };
 &glidepoint_split_listener {
     status = "okay";
-    /* The standard relative Pinnacle report is forwarded unchanged by the
-     * split input device. */
-    input-processors = <&sosho_trackpad_long_press>,
+    /* The left peripheral uses the absolute path so the outer ring can
+     * become a vertical scroll gesture after the split link. */
+    input-processors = <&sosho_trackpad_edge_scroll>,
+                       <&sosho_trackpad_long_press>,
                        <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
 };
 
