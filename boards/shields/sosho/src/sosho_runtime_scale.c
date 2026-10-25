@@ -11,6 +11,9 @@
 
 /* Start at unity so the existing calibrated movement is unchanged. */
 static volatile int scale_percent = 100;
+/* Unity preserves the current build-time scroll behavior until the user
+ * assigns Scroll - / Scroll + to a key. */
+static volatile int scroll_scale_percent = 100;
 
 void sosho_runtime_scale_adjust(int delta_percent) {
     int next = scale_percent + delta_percent;
@@ -24,6 +27,18 @@ void sosho_runtime_scale_adjust(int delta_percent) {
 
 int sosho_runtime_scale_percent(void) { return scale_percent; }
 
+void sosho_scroll_scale_adjust(int delta_percent) {
+    int next = scroll_scale_percent + delta_percent;
+    if (next < 25) {
+        next = 25;
+    } else if (next > 200) {
+        next = 200;
+    }
+    scroll_scale_percent = next;
+}
+
+int sosho_scroll_scale_percent(void) { return scroll_scale_percent; }
+
 static int runtime_scale_handle_event(const struct device *dev, struct input_event *event,
                                       uint32_t param1, uint32_t param2,
                                       struct zmk_input_processor_state *state) {
@@ -32,11 +47,15 @@ static int runtime_scale_handle_event(const struct device *dev, struct input_eve
     ARG_UNUSED(param2);
 
     if (event->type != INPUT_EV_REL ||
-        (event->code != INPUT_REL_X && event->code != INPUT_REL_Y)) {
+        (event->code != INPUT_REL_X && event->code != INPUT_REL_Y &&
+         event->code != INPUT_REL_WHEEL && event->code != INPUT_REL_HWHEEL)) {
         return ZMK_INPUT_PROC_CONTINUE;
     }
 
-    int32_t scaled = (int32_t)event->value * scale_percent;
+    int multiplier = (event->code == INPUT_REL_WHEEL || event->code == INPUT_REL_HWHEEL)
+                         ? scroll_scale_percent
+                         : scale_percent;
+    int32_t scaled = (int32_t)event->value * multiplier;
     if (state != NULL && state->remainder != NULL) {
         scaled += *state->remainder;
     }

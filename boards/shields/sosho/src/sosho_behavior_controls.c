@@ -23,12 +23,11 @@ enum sosho_control_action {
     SOSHO_CPI_UP,
     SOSHO_TRACKPAD_DOWN,
     SOSHO_TRACKPAD_UP,
-    SOSHO_AUTO_MOUSE_TOGGLE,
+    SOSHO_SCROLL_DOWN,
+    SOSHO_SCROLL_UP,
 };
 
 static int current_cpi = 200;
-static bool auto_mouse_enabled;
-
 #if DT_HAS_COMPAT_STATUS_OKAY(pixart_pmw3610_alt)
 static const struct device *trackball_device(void) {
     const struct device *dev = DEVICE_DT_GET(DT_INST(0, pixart_pmw3610_alt));
@@ -60,7 +59,8 @@ static const struct behavior_parameter_value_metadata values[] = {
     {.display_name = "CPI +", .type = BEHAVIOR_PARAMETER_VALUE_TYPE_VALUE, .value = SOSHO_CPI_UP},
     {.display_name = "Trackpad -", .type = BEHAVIOR_PARAMETER_VALUE_TYPE_VALUE, .value = SOSHO_TRACKPAD_DOWN},
     {.display_name = "Trackpad +", .type = BEHAVIOR_PARAMETER_VALUE_TYPE_VALUE, .value = SOSHO_TRACKPAD_UP},
-    {.display_name = "Auto Mouse ON/OFF", .type = BEHAVIOR_PARAMETER_VALUE_TYPE_VALUE, .value = SOSHO_AUTO_MOUSE_TOGGLE},
+    {.display_name = "Scroll -", .type = BEHAVIOR_PARAMETER_VALUE_TYPE_VALUE, .value = SOSHO_SCROLL_DOWN},
+    {.display_name = "Scroll +", .type = BEHAVIOR_PARAMETER_VALUE_TYPE_VALUE, .value = SOSHO_SCROLL_UP},
 };
 
 static const struct behavior_parameter_metadata_set metadata_set = {
@@ -88,9 +88,11 @@ static int controls_pressed(struct zmk_behavior_binding *binding,
     case SOSHO_TRACKPAD_UP:
         sosho_runtime_scale_adjust(10);
         return 0;
-    case SOSHO_AUTO_MOUSE_TOGGLE:
-        auto_mouse_enabled = !auto_mouse_enabled;
-        LOG_INF("auto mouse %s", auto_mouse_enabled ? "enabled" : "disabled");
+    case SOSHO_SCROLL_DOWN:
+        sosho_scroll_scale_adjust(-10);
+        return 0;
+    case SOSHO_SCROLL_UP:
+        sosho_scroll_scale_adjust(10);
         return 0;
     default:
         return -EINVAL;
