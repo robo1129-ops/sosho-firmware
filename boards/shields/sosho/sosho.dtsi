@@ -10,6 +10,13 @@
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 #include "sosho-layouts.dtsi"
 
+/* nRF52840 NFC pins are used as ordinary GPIOs by the SO-SHO matrix.
+ * Use the current devicetree switch instead of Zephyr's deprecated Kconfig
+ * symbol so the same pin behavior survives current Zephyr/ZMK builds. */
+&uicr {
+    nfct-pins-as-gpios;
+};
+
 / {
     /* The scroll layer uses a custom processor to select one axis for each
      * sensor report, so diagonal movement never produces diagonal scrolling. */
