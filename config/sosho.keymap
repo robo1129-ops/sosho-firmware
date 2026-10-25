@@ -28,11 +28,11 @@
             #binding-cells = <1>;
         };
         ec_ms_l: ec_ms_h {
-            compatible = "zmk,behavior-encoder-mouse-scroll";
+            compatible = "sosho,behavior-encoder-mouse-scroll";
             #sensor-binding-cells = <2>;
         };
         ec_ms_r: ec_ms_v {
-            compatible = "zmk,behavior-encoder-mouse-scroll";
+            compatible = "sosho,behavior-encoder-mouse-scroll";
             #sensor-binding-cells = <2>;
         };
     };

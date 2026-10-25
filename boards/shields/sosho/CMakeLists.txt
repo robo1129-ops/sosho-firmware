@@ -19,5 +19,6 @@ if (NOT CONFIG_ZMK_SPLIT OR CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
     "${SOSHO_SOURCE_DIR}/sosho_macro_runtime.c"
     "${SOSHO_SOURCE_DIR}/sosho_behavior_controls.c"
     "${SOSHO_SOURCE_DIR}/sosho_behavior_macro.c"
+    "${SOSHO_SOURCE_DIR}/sosho_behavior_encoder_mouse_scroll.c"
   )
 endif()
