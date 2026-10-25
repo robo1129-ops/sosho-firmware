@@ -18,9 +18,11 @@ manifest:
     - name: zmk-rgbled-widget
       remote: caksoylar
       revision: main
+      path: modules/zmk-rgbled-widget
     - name: zmk-pmw3610-driver
       remote: badjeff
       revision: main
+      path: modules/zmk-pmw3610-driver
     - name: zmk_encoder
       remote: elekit-official
       revision: main
