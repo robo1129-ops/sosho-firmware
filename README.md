@@ -9,6 +9,12 @@ Both use data-ready on P1.07. Source: <https://elekit.co.jp/support/faq/5255>.
 
 このリポジトリは、公式SO-SHO templateを基にしたZMK firmware configurationです。日常構成は、右 = Central + trackball、左 = Peripheral + trackpadです。
 
+## Webエディターとの対応契約
+
+現在のSO-SHO Webエディターは、右Centralの公式ZMK Studio RPCで実機へ保存できる設定だけを編集画面に表示する。通常キー、修飾キー、JISキー、レイヤー操作、ファームウェアのメタデータに存在するホールド／タップ、マウス・ホイール・Bluetooth・出力操作、CPI・トラックパッド倍率・スクロール倍率の増減が対象である。保存後は実機からキーマップを再読み取りし、送信内容と一致することを確認する。
+
+スリープ時間、初期CPI、初期センサー倍率、軸反転、軸固定、センサー配置、ロータリーエンコーダーのsensor-bindings、任意のマクロ定義は、公式ZMK StudioのキーマップRPCだけでは変更できない。これらはビルド時設定またはファームウェア機能であり、Webエディターの実機保存画面からは扱わない。設定ファイルのJSONはキーマップとデフォルトキーマップだけを対象とし、実機へ書き込めない値を成功したように保存しない。
+
 ## ビルド構成
 
 - 日常構成: `sosho_R_trackball`（右Central） + `sosho_L_trackpad`（左Peripheral）
@@ -64,7 +70,7 @@ PMW3610と既存encoder moduleを維持し、`boards/shields/sosho/sosho.dtsi` �
 
 ロータリーエンコーダーは押下入力を持たない。標準の `config/sosho.keymap` では、左エンコーダーの反時計回りが左右スクロール左、時計回りが左右スクロール右、右エンコーダーの反時計回りが上下スクロール下、時計回りが上下スクロール上である。Webアプリのエンコーダー設定も同じ順序で表示する。エンコーダーはファームウェア内の `sosho,behavior-encoder-mouse-scroll` で、角度形式とティック形式の両方のセンサー通知を受け付け、1回の回転を1回のスクロール通知として送信するため、旧来の押下・解放方式やティック形式の読み落としを避けられる。ZMK Studioの標準キーマップRPCはキー割り当てを扱うが、センサーの `sensor-bindings` を実行時に変更しないため、エンコーダー動作をファームウェアへ反映するには再ビルドが必要になる。
 
-Webアプリでは、左右それぞれの反時計回り・時計回りを通常キーと同じアクションパレットから編集できる。エンコーダーは押下できないため、ホールド／タップ設定は表示せず、回転方向への単一アクションだけを保存する。設定はJSONへ保存され、通常キーのRPC書き込みに混ぜない。現在のファームウェアで実機へ反映できるのは、ビルド時の `sensor-bindings` に定義された動作であり、任意のエンコーダー割り当てを実機へ反映するには、選択内容を取り込んだファームウェアの再ビルドが必要になる。
+Webアプリでは、ロータリーエンコーダーの押下なしという実機形状を表示上も維持し、ホールド／タップ設定や実機へ書き込めない回転割り当ての編集を表示しない。現在のファームウェアで実機へ反映されるのは、ビルド時の `sensor-bindings` に定義された動作であり、回転方向を変更するには選択内容を取り込んだファームウェアの再ビルドが必要になる。
 
 ### Trackpad
 
@@ -78,35 +84,35 @@ Pinnacleは単一接触デバイスなので、指の本数、二指タップ、
 
 ### Tap dance
 
-Web editorでは1回・2回・3回・ホールドのtap-dance定義を作成して物理キーへドラッグできます。日本語JISキーを含む通常キーとtap-dance定義はブラウザー側へ保存されます。tap-danceの実機キーマップへの反映は、現行のBLEマクロサービスとは別のZMK keymap bindingとして扱うため、定義をファームウェアへ組み込む場合はビルドが必要です。
+Tap danceはファームウェアのkeymap bindingとしてビルド時に定義する機能であり、公式ZMK Studioの標準キーマップRPCだけでは新しい定義を作成できない。現在のWebエディターでは、実機へ保存できないtap-dance定義やドラッグ操作を編集画面に表示しない。必要な定義はkeymapへ追加してファームウェアを再ビルドする。
 
 ## Studio / USBの状態
 
-右Central側に公式のStudio USB UART transport、公式Studio BLE GATT transport、`CONFIG_ZMK_STUDIO=y`、Studio unlock bindingを構成する。USBは右CentralのCDC-ACM、BLEは公式GATTサービスを使う。左Peripheral側は左右通信専用で、PCのStudio終端ではない。WindowsのWeb Bluetoothは制約があるため、BLE編集は対応ブラウザー／ネイティブStudioで行い、WindowsではUSBを推奨する。
+右Central側に公式のStudio USB UART transport、`CONFIG_ZMK_STUDIO=y`、Studio unlock bindingを構成する。USBは右CentralのCDC-ACMを使い、左Peripheral側は左右通信専用でPCのStudio終端ではない。現在のSO-SHO Webエディターの書き込み経路は右CentralのUSB/COMに限定する。BLE transportを含むファームウェアを使う場合でも、WebエディターのUSB RPCと同じ保存結果が実機から再読取できることを別途確認する必要がある。
 
-COMポートはUSB CDC/ACMのStudio UART transportであり、BLEをCOMポートとして公開する設定にはならない。Webアプリは右CentralのUSBと、対応環境では公式Studio BLE GATTの両方から同じprotobuf RPCを実行する。USB接続時に左Peripheralを選択した場合は編集対象外として警告する。
+COMポートはUSB CDC/ACMのStudio UART transportであり、BLEをCOMポートとして公開する設定にはならない。Webエディターは右CentralのUSB/COMへ接続し、左Peripheralを編集対象として扱わない。右Central以外を接続した場合は保存を実行せず、対象外であることを表示する。
 
 Web editorには公式Studio protobuf RPCのフレーム生成・応答解析・`get_device_info` / `get_lock_state` / `get_keymap` / `set_layer_binding` / `save_changes` / 再読み取りを実装済み。実機のUSB RPCはUF2導入後に確認する。ZMK公式ドキュメントも、USB利用時は `studio-rpc-usb-uart` snippetと `CONFIG_ZMK_STUDIO=y` を使い、分割キーボードでは中央側だけにUSB endpointを構成する手順を示している。
 
 ## マクロの扱い
 
-公式ZMK Studio RPCはキーマップ編集用で、マクロ定義の作成・編集・削除RPCは提供していません。そのため本ファームウェアでは、公式RPCとは別に暗号化済みSO-SHOマクロBLE GATTサービスをCentralへ追加し、Web editorからMacro 0〜15を保存・削除・実行できるようにします。USB接続時は公式RPCの仕様上、マクロ送信ではなくJSON保存までです。
+公式ZMK Studio RPCはキーマップ編集用で、マクロ定義の作成・編集・削除RPCを提供していない。そのため、マクロのドラッグ編集、レイテンシ設定、組み合わせキーをWebエディターの実機保存機能として提供しない。ブラウザー内だけに保存される設定を、実機へ書き込めたようには扱わない。
 
-保存形式は、Macro 0〜15の16スロット、名前、割り当て先、最大8ステップの `KEY|MODE|WAIT_MS` 列です。`MODE` は `tap` / `press` / `release`、待ち時間は0〜60000ミリ秒です。保存先はJSON、localStorage、対応BLE時のZMK settingsです。
+ファームウェア側に残る独自マクロ実装や保存形式があっても、現在のUSB Webエディターの対応契約には含めない。マクロを実機で使う場合は、ZMKのkeymap bindingとして定義してファームウェアを再ビルドする。
 
 PINを要求する特殊なホスト向けの予備として、Layer 3に数字入力を用意しています。通常レイヤーで右側のLayer 3キーを押している間、右手側の数字キーを使い、右下のキーでENTERを送信できます。通常のWindowsペアリングではPIN入力を使わない構成です。
 
 Windowsで「接続済みだがキーやポインティング入力が届かない」状態を避けるため、中央側では `CONFIG_BT_GATT_ENFORCE_SUBSCRIPTION=n` を設定しています。また、split中央のBattery Level代理通知・取得を無効にし、左右入力のposition-state GATT探索を優先します。ZMKのsplit関連既知事例では、Battery Level取得を有効にした探索中にPeripheralのposition-state characteristicが見つからず、左右入力が届かなくなる症状が報告されています。
 
-Web editorでは、マクロを編集してJSONへ保存・読み込みできます。MIDIは仕様・UI・プロトコルに含めません。
+JSONのダウンロード／読み込みは、実機の公式RPCが扱えるキーマップとデフォルトキーマップだけを対象とする。MIDI、ブラウザー専用マクロ、実機へ反映できないセンサー設定はJSONへ含めない。
 
 ## 検証手順
 
 1. GitHub Actionsで日常構成の右Central trackball / 左Peripheral trackpad artifactが成功することを確認する
 2. 生成物のboard/shield、Studio USB endpoint、BLE設定、settings resetを確認する
 3. 一度だけUSBで導入し、右Centralがホストに接続できること、左Peripheralのキーが右Central経由で入力されることを実機で確認する
-4. 右CentralのUSBから公式Studio RPCのkeymap read/write/re-readを実機で確認する
+4. 右CentralのUSBから公式Studio RPCのkeymap read/write/re-readを実機で確認する。保存操作は `save_changes` の応答を受けてから再読み取りし、一致しない場合は成功扱いにしない
 5. 標準トラックパッドプロファイルでポインター移動、タップの左クリック、2回タップのホスト側ダブルクリックを確認する。右クリックと外周スクロールは今回の安定版では対象外。スクロールは右トラックボールのスクロールレイヤーで確認する
 6. 不具合時は直前のUF2へ戻せるようにする
 
-このリポジトリのソース変更とActionsビルド以外の物理キーボード操作、flash、再flashは行っていない。実機でのUSB RPC、BLE Studio、トラックパッド操作確認は、生成UF2導入後にユーザー側で確認する必要がある。
+このリポジトリのソース変更とローカル／Actionsビルド以外の物理キーボード操作、flash、再flashは行っていない。現時点で確認済みなのは、設定保存用NVSを有効にした構成でビルドが通ること、Web側のRPC変換と再読み取りテストが通ることまでである。実機での保存成功は、新しい右Central UF2を書き込んだ後に、右CentralをUSB接続して読み取り→変更→保存→再読み取りの順で確認する必要がある。
