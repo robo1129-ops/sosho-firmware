@@ -6,14 +6,14 @@
     invert-x;
     /* The physical pad orientation reports vertical motion inverted. */
     invert-y;
-    /* Absolute samples let the SO-SHO input processor distinguish normal
-     * pointer movement from the outer-ring scroll gesture. */
-    data-mode = "absolute";
-    clipping-enable;
-    active-range-x-min = <128>;
-    active-range-x-max = <1920>;
-    active-range-y-min = <64>;
-    active-range-y-max = <1472>;
+    /* Use the official Pinnacle relative path.  It emits REL_X/REL_Y and
+     * BTN_TOUCH in the order expected by ZMK's split input listener.  The
+     * previous absolute-coordinate path depended on a custom X/Y/Z frame
+     * state machine; when the touch controller or split link delivered a
+     * frame without the expected pressure transition, every movement was
+     * suppressed and the pad appeared dead. */
+    data-mode = "relative";
+    primary-tap-enable;
     sensitivity = "1x";
 };
 &glidepoint_split {
