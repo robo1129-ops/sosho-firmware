@@ -67,7 +67,7 @@ Webアプリでは、左右それぞれの反時計回り・時計回りを通�
 
 ### Trackpad
 
-既存のGlidePoint / pointing input pathを維持し、`SOSHO_TRACKPAD_XY_SCALE_NUM` / `SOSHO_TRACKPAD_XY_SCALE_DEN` をmovement scaleとして使う。ジェスチャー判定を行う構成ではPinnacleをabsolute modeで読み取り、現在は入力を減衰させない `1/1` と、Pinnacleの最大感度 `1x` にしている。値を変更したら再ビルドが必要で、Webアプリの実行時設定としては扱わない。
+既存のGlidePoint / pointing input pathを維持し、`SOSHO_TRACKPAD_XY_SCALE_NUM` / `SOSHO_TRACKPAD_XY_SCALE_DEN` をmovement scaleとして使う。ジェスチャー判定を行う構成ではPinnacleをabsolute modeで読み取り、カーソル移動は `1/2` に減衰し、Pinnacleのタッチ検出感度は `1x` に維持している。SO-SHOの実機向きに合わせてY軸は反転する。値を変更したら再ビルドが必要で、Webアプリの実行時設定としては扱わない。
 
 公式ZephyrのCirque Pinnacleドライバが出す `INPUT_ABS_X` / `INPUT_ABS_Y` / `INPUT_ABS_Z` を、中央側の専用入力プロセッサで通常操作とジェスチャーへ分離する。短いタップは左クリック、500ms以上の接触は右クリックとして扱い、長押し後の移動は右ボタンを押したままのドラッグとして出力する。短いタップを2回行った場合は、2回の標準左クリックを送るため、ホストOSがダブルクリックとして解釈できる。標準の `sosho_L_trackpad` と中央側のトラックパッド構成に同じ経路を適用している。
 

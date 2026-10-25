@@ -59,7 +59,7 @@
 #define SOSHO_TRACKPAD_XY_SCALE_NUM 1
 #endif
 #ifndef SOSHO_TRACKPAD_XY_SCALE_DEN
-#define SOSHO_TRACKPAD_XY_SCALE_DEN 1
+#define SOSHO_TRACKPAD_XY_SCALE_DEN 2
 #endif
 
 &physical_layout0 {

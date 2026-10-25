@@ -4,6 +4,8 @@
 &glidepoint {
     status = "okay";
     invert-x;
+    /* The physical pad orientation reports vertical motion inverted. */
+    invert-y;
     /* Absolute samples let the SO-SHO input processor distinguish normal
      * pointer movement from the outer-ring scroll gesture. */
     data-mode = "absolute";
