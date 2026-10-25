@@ -1,3 +1,8 @@
+/* The ZMK input-processor bundle references the built-in `none` behavior
+ * before the keymap overlay is parsed.  Define it in the shield overlay so
+ * current ZMK revisions can resolve the reference during the first DTS pass.
+ * The keymap omits its duplicate copy below. */
+#include <behaviors/none.dtsi>
 #include <input/processors.dtsi>
 #include <dt-bindings/zmk/input_transform.h>
 #include <dt-bindings/zmk/matrix_transform.h>

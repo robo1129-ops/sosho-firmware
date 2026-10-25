@@ -6,6 +6,7 @@
  * Web/ZMK Studio to write a new tap/hold binding over RPC. */
 #define ZMK_BEHAVIORS_KEEP_MT
 #define ZMK_BEHAVIORS_KEEP_LT
+#define ZMK_BEHAVIORS_OMIT_NONE
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/keys.h>
@@ -27,14 +28,12 @@
             #binding-cells = <1>;
         };
         ec_ms_l: ec_ms_h {
-            compatible = "zmk,behavior-sensor-rotate-var";
+            compatible = "zmk,behavior-encoder-mouse-scroll";
             #sensor-binding-cells = <2>;
-            bindings = <&msc>, <&msc>;
         };
         ec_ms_r: ec_ms_v {
-            compatible = "zmk,behavior-sensor-rotate-var";
+            compatible = "zmk,behavior-encoder-mouse-scroll";
             #sensor-binding-cells = <2>;
-            bindings = <&msc>, <&msc>;
         };
     };
 };

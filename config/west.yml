@@ -25,7 +25,10 @@ manifest:
       path: modules/zmk-pmw3610-driver
     - name: zmk_encoder
       remote: elekit-official
-      revision: main
+      # Pin the encoder behavior to the revision used by the local build.
+      # Keeping main here could silently replace the scroll implementation
+      # between firmware releases.
+      revision: 1a34a55
       path: modules/zmk_encoder
   self:
     path: config
