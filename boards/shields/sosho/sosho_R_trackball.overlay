@@ -43,7 +43,7 @@
      * BTN_TOUCH events so the normal ZMK pointing listener can generate a
      * reliable primary click. Right-click/edge-scroll gesture processors
      * are intentionally not part of the release profile. */
-    input-processors = <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
+    input-processors = <&sosho_runtime_scaler>;
 };
 
 /* Keep the alternate left-trackball combination available. */

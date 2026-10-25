@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MIT
+
+description: Runtime-adjustable SO-SHO relative pointing scale
+
+compatible: "sosho,input-processor-runtime-scale"
+
+include: ip_zero_param.yaml

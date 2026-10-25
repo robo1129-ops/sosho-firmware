@@ -9,6 +9,8 @@
 #include <zmk/behavior.h>
 #include <zmk/behavior_queue.h>
 
+#include "sosho_macro_runtime.h"
+
 #include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -168,7 +170,7 @@ static void response_ccc_changed(const struct bt_gatt_attr *attr, uint16_t value
     ARG_UNUSED(value);
 }
 
-static int run_macro(uint8_t id) {
+int sosho_macro_run(uint8_t id) {
     if (id >= SOSHO_MAX_MACROS || macro_blob_len[id] == 0) {
         return -ENOENT;
     }
@@ -347,7 +349,7 @@ static ssize_t command_write(struct bt_conn *conn, const struct bt_gatt_attr *at
             send_response(conn, op, txid, err ? SOSHO_STATUS_BAD_VALUE : SOSHO_STATUS_OK, NULL, 0);
         }
     } else if (op == SOSHO_OP_RUN) {
-        int err = (payload_len == 1) ? run_macro(payload[0]) : -EINVAL;
+        int err = (payload_len == 1) ? sosho_macro_run(payload[0]) : -EINVAL;
         send_response(conn, op, txid,
                       err == 0 ? SOSHO_STATUS_OK : SOSHO_STATUS_BAD_VALUE, NULL, 0);
     } else {

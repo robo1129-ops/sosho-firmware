@@ -35,6 +35,12 @@
          * circular gesture usable without producing large wheel jumps. */
         scroll-divider = <4>;
     };
+
+    /omit-if-no-ref/ sosho_runtime_scaler: sosho_runtime_scaler {
+        compatible = "sosho,input-processor-runtime-scale";
+        #input-processor-cells = <0>;
+        track-remainders;
+    };
 };
 
 /*

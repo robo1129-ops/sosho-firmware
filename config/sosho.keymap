@@ -14,6 +14,18 @@
 
 / {
     behaviors {
+        sosho_controls: sosho_controls {
+            compatible = "sosho,behavior-controls";
+            #binding-cells = <1>;
+        };
+        sosho_wheel: sosho_wheel {
+            compatible = "sosho,behavior-wheel";
+            #binding-cells = <1>;
+        };
+        sosho_runtime_macro: sosho_runtime_macro {
+            compatible = "sosho,behavior-runtime-macro";
+            #binding-cells = <1>;
+        };
         ec_ms_l: ec_ms_h {
             compatible = "zmk,behavior-sensor-rotate-var";
             #sensor-binding-cells = <2>;

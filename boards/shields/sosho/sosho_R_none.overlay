@@ -13,7 +13,7 @@
     status = "okay";
     /* Keep the peripheral's official relative path and primary tap. The
      * blank module does not reinterpret coordinates or synthesize gestures. */
-    input-processors = <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
+    input-processors = <&sosho_runtime_scaler>;
 };
 
 &trackball_split { status = "okay"; };

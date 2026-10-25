@@ -19,7 +19,7 @@
 };
 &glidepoint_listener {
     status = "okay";
-    input-processors = <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
+    input-processors = <&sosho_runtime_scaler>;
 };
 
 /* The central can also receive the left peripheral's trackpad input. */
@@ -28,7 +28,7 @@
     status = "okay";
     /* A left peripheral keeps its own left-side orientation and uses the
      * same relative input path as the normal trackball central profile. */
-    input-processors = <&zip_xy_scaler SOSHO_TRACKPAD_XY_SCALE_NUM SOSHO_TRACKPAD_XY_SCALE_DEN>;
+    input-processors = <&sosho_runtime_scaler>;
 };
 
 /* Keep the alternate left-trackball combination available. */
