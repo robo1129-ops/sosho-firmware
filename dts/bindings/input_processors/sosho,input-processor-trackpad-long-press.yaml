@@ -10,3 +10,9 @@ properties:
     required: false
     default: 500
     description: Contact duration in milliseconds that triggers the right button
+
+  tap-move-threshold:
+    type: int
+    required: false
+    default: 24
+    description: Maximum accumulated relative motion after contact that still permits a tap

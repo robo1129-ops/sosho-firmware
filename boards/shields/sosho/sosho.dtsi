@@ -20,6 +20,10 @@
          * a right click.  The value is build-time so the gesture is stable
          * in both USB and BLE pointing paths. */
         long-press-ms = <500>;
+        /* Allow small fingertip drift while still classifying the contact as
+         * a tap.  Larger motion is treated as a drag and does not synthesize
+         * a click. */
+        tap-move-threshold = <24>;
     };
 
     /omit-if-no-ref/ sosho_trackpad_edge_scroll: sosho_trackpad_edge_scroll {
