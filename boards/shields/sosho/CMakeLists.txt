@@ -5,7 +5,7 @@
 # part of both local west builds and the reusable GitHub build workflow; a
 # standalone CMakeLists.txt at the repository root is not consumed by ZMK's
 # application build.
-set(SOSHO_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../src")
+set(SOSHO_SOURCE_DIR "${CMAKE_CURRENT_LIST_DIR}/src")
 
 target_sources(app PRIVATE
   "${SOSHO_SOURCE_DIR}/boot_delay_hack.c"
