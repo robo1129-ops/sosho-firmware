@@ -1,8 +1,9 @@
 name: Package firmware ZIP
 
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: ["Build ZMK firmware"]
+    types: [completed]
 
 permissions:
   actions: read
@@ -10,45 +11,15 @@ permissions:
 
 jobs:
   package:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Resolve the successful firmware build
-        id: resolve-build
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TARGET_SHA: ${{ github.sha }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          for attempt in $(seq 1 30); do
-            runs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=main&event=push&per_page=50")"
-            build="$(jq -c --arg sha "$TARGET_SHA" '
-              [.workflow_runs[]
-                | select(.name == "Build ZMK firmware")
-                | select(.head_sha == $sha)
-                | select(.status == "completed")
-                | select(.conclusion == "success")]
-              | sort_by(.run_number) | last // empty
-            ' <<<"$runs")"
-            if [[ -n "$build" && "$build" != "null" ]]; then
-              echo "run_id=$(jq -r '.id' <<<"$build")" >> "$GITHUB_OUTPUT"
-              echo "build_sha=$(jq -r '.head_sha' <<<"$build")" >> "$GITHUB_OUTPUT"
-              echo "build_url=$(jq -r '.html_url' <<<"$build")" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            if [[ "$attempt" -lt 30 ]]; then
-              sleep 20
-            fi
-          done
-          echo "No successful Build ZMK firmware run found for $TARGET_SHA" >&2
-          exit 1
-
       - name: Download all firmware variants
         uses: actions/download-artifact@v4
         with:
           name: firmware
           path: dist/firmware
-          run-id: ${{ steps.resolve-build.outputs.run_id }}
+          run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Arrange firmware by sleep mode
@@ -72,8 +43,8 @@ jobs:
 
       - name: Add variant manifest
         env:
-          BUILD_SHA: ${{ steps.resolve-build.outputs.build_sha }}
-          BUILD_URL: ${{ steps.resolve-build.outputs.build_url }}
+          BUILD_SHA: ${{ github.event.workflow_run.head_sha }}
+          BUILD_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}
         run: |
           cat > dist/README.txt <<EOF
           SO-SHO custom firmware
@@ -175,7 +146,7 @@ jobs:
       - name: Publish stable latest release asset
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BUILD_SHA: ${{ steps.resolve-build.outputs.build_sha }}
+          BUILD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           if ! gh release view latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release create latest \
