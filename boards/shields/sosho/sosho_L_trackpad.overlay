@@ -4,8 +4,8 @@
 &glidepoint {
     status = "okay";
     invert-x;
-    /* The physical pad orientation reports vertical motion inverted. */
-    invert-y;
+    /* Keep the driver's default vertical direction; the current hardware
+     * reports vertical motion in the expected host direction. */
     /* Use the official Pinnacle relative path.  It emits REL_X/REL_Y and
      * BTN_TOUCH in the order expected by ZMK's split input listener.  The
      * previous absolute-coordinate path depended on a custom X/Y/Z frame
