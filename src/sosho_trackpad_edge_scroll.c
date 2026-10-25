@@ -8,12 +8,11 @@
  * BTN_TOUCH, so the existing tap/long-press processor keeps working.
  *
  * The driver reports X, Y, and Z as one sample (X/Y have sync=false and Z
- * has sync=true).  Do not emit the current X/Y delta immediately: the
- * release sample can contain X=0/Y=0, and treating it as movement causes a
- * large pointer jump.  One sample is held until its Z state is known; this
- * also suppresses the initial contact delta.  The resulting one-sample
- * latency is preferable to a release jump and is not visible during normal
- * use.
+ * has sync=true).  X/Y are absolute coordinates, not pointer deltas.  A new
+ * contact must therefore establish a fresh origin; using the last coordinate
+ * from the previous contact makes a small change in touch location look like
+ * a large pointer jump.  One complete sample is held until its Z state is
+ * known, which also suppresses the initial contact and release coordinates.
  */
 
 #define DT_DRV_COMPAT sosho_input_processor_trackpad_edge_scroll
@@ -48,6 +47,8 @@ struct sosho_edge_state {
     const struct device *source;
     int32_t x;
     int32_t y;
+    int32_t frame_x;
+    int32_t frame_y;
     int32_t frame_dx;
     int32_t frame_dy;
     int32_t last_dx;
@@ -58,7 +59,7 @@ struct sosho_edge_state {
     bool have_position;
     bool frame_x_seen;
     bool frame_y_seen;
-    bool frame_release_suspected;
+    bool frame_invalid;
     bool frame_valid;
     bool touch_active;
     bool edge_active;
@@ -79,6 +80,8 @@ static struct sosho_edge_state *state_for(const struct device *dev,
     if (state->source != event->dev && state->source != NULL) {
         state->x = 0;
         state->y = 0;
+        state->frame_x = 0;
+        state->frame_y = 0;
         state->frame_dx = 0;
         state->frame_dy = 0;
         state->last_dx = 0;
@@ -89,7 +92,7 @@ static struct sosho_edge_state *state_for(const struct device *dev,
         state->have_position = false;
         state->frame_x_seen = false;
         state->frame_y_seen = false;
-        state->frame_release_suspected = false;
+        state->frame_invalid = false;
         state->frame_valid = false;
         state->touch_active = false;
         state->edge_active = false;
@@ -173,21 +176,18 @@ static int edge_scroll_handle_event(const struct device *dev, struct input_event
     switch (event->code) {
     case INPUT_ABS_X: {
         int32_t next_x = event->value;
-        int32_t delta_x = state->have_position ? next_x - state->x : 0;
-        state->x = next_x;
-        state->have_position = true;
-        state->frame_dx = clamp_frame_delta(delta_x);
+        state->frame_x = next_x;
         state->frame_x_seen = true;
-        /* Cirque's inactive report uses zero coordinates, outside its
-         * active window (X starts at 128).  Mark the complete report so the
-         * X event cannot replay the previous movement on release. */
-        state->frame_release_suspected = state->frame_release_suspected || next_x == 0;
+        /* Cirque's inactive report uses zero coordinates.  Mark the whole
+         * report invalid so it cannot replay the previous movement on
+         * release. */
+        state->frame_invalid = state->frame_invalid || next_x == 0;
 
         /* Output the previous complete sample.  The current sample is held
          * until its Z event tells us whether it was a real touch or release. */
         emit_relative(event, INPUT_REL_X,
                       state->frame_valid && state->touch_active && !state->edge_active &&
-                              !state->frame_release_suspected
+                              !state->frame_invalid
                           ? state->last_dx
                           : 0,
                       false);
@@ -195,15 +195,12 @@ static int edge_scroll_handle_event(const struct device *dev, struct input_event
     }
     case INPUT_ABS_Y: {
         int32_t next_y = event->value;
-        int32_t delta_y = state->have_position ? next_y - state->y : 0;
-        state->y = next_y;
-        state->have_position = true;
-        state->frame_dy = clamp_frame_delta(delta_y);
+        state->frame_y = next_y;
         state->frame_y_seen = true;
-        state->frame_release_suspected = state->frame_release_suspected || next_y == 0;
+        state->frame_invalid = state->frame_invalid || next_y == 0;
 
         if (state->frame_valid && state->touch_active && state->edge_active &&
-            !state->frame_release_suspected) {
+            !state->frame_invalid) {
             /* Tangential motion around the circumference becomes vertical
              * wheel motion.  Radial motion contributes zero, avoiding
              * diagonal scrolling at the edge. */
@@ -213,7 +210,7 @@ static int edge_scroll_handle_event(const struct device *dev, struct input_event
         } else {
             emit_relative(event, INPUT_REL_Y,
                           state->frame_valid && state->touch_active && !state->edge_active &&
-                                  !state->frame_release_suspected
+                                  !state->frame_invalid
                               ? state->last_dy
                               : 0,
                           true);
@@ -223,30 +220,57 @@ static int edge_scroll_handle_event(const struct device *dev, struct input_event
     case INPUT_ABS_Z: {
         bool pressed = event->value > 0;
         bool was_pressed = state->touch_active;
+        bool complete_frame = state->frame_x_seen && state->frame_y_seen &&
+                              !state->frame_invalid;
 
         if (pressed && !was_pressed) {
-            state->edge_active = state->have_position && on_edge(config, state->x, state->y);
+            /* Establish a new origin for every contact.  Never compare the
+             * first contact coordinate with the previous contact's last
+             * coordinate. */
+            state->have_position = complete_frame;
+            if (complete_frame) {
+                state->x = state->frame_x;
+                state->y = state->frame_y;
+            }
+            state->edge_active = complete_frame && on_edge(config, state->frame_x,
+                                                           state->frame_y);
             state->scroll_remainder = 0;
-            /* Do not emit the jump from the idle position to the first
-             * contact.  The next held sample will become the first valid
-             * movement sample. */
+            /* Do not emit the first contact coordinate as movement. */
             state->frame_valid = false;
         } else if (pressed && was_pressed) {
-            state->frame_valid = state->frame_x_seen && state->frame_y_seen;
-            state->last_dx = state->frame_dx;
-            state->last_dy = state->frame_dy;
-            state->last_x = state->x;
-            state->last_y = state->y;
+            if (complete_frame) {
+                if (!state->have_position) {
+                    /* Recover cleanly if the press report arrived without a
+                     * complete coordinate frame. */
+                    state->x = state->frame_x;
+                    state->y = state->frame_y;
+                    state->have_position = true;
+                    state->frame_valid = false;
+                } else {
+                    state->frame_dx = clamp_frame_delta(state->frame_x - state->x);
+                    state->frame_dy = clamp_frame_delta(state->frame_y - state->y);
+                    state->last_dx = state->frame_dx;
+                    state->last_dy = state->frame_dy;
+                    state->last_x = state->frame_x;
+                    state->last_y = state->frame_y;
+                    state->x = state->frame_x;
+                    state->y = state->frame_y;
+                    state->frame_valid = true;
+                }
+            } else {
+                state->frame_valid = false;
+            }
         } else if (!pressed) {
             state->edge_active = false;
             state->scroll_remainder = 0;
+            state->have_position = false;
             /* Never expose the release sample's coordinates as movement. */
             state->frame_valid = false;
         }
         state->touch_active = pressed;
         state->frame_x_seen = false;
         state->frame_y_seen = false;
-        state->frame_release_suspected = false;
+        state->frame_invalid = false;
         event->type = INPUT_EV_KEY;
         event->code = INPUT_BTN_TOUCH;
         event->value = pressed ? 1 : 0;
