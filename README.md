@@ -48,6 +48,10 @@ ZIPには、スリープ時間で分けず、次のハードウェア構成を1�
 - 初回導入には右CentralのUF2をUSBで一度書き込む。以後のキーマップ編集も右CentralのUSB/COM経路だけを使う
 - Windows接続向けに2M PHYを無効化し、必要な環境でLE passkey入力を有効化する。これはZMK公式のWindows接続トラブルシュートに沿った設定で、接続改善を保証するものではない
 
+### 半角／全角キー
+
+左手側の初期キーマップでは、最下段の左から3番目を `LT(1, LANG5)` にしています。短く押すとHIDの半角／全角（`LANG5`, usage `0x94`）を送信し、押し続けるとLayer 1へ切り替わります。Webエディター側でも `半角/全角`、`全角/半角`、`LANG5`、`HANKAKUZENKAKU` を同じusageへ変換します。
+
 左右のモジュールを独立して選ぶ場合は、中央側を `sosho_R_trackball` / `sosho_R_trackpad` / `sosho_R_none` から、Peripheral側を `sosho_L_trackpad` / `sosho_L_trackball` / `sosho_L_none` から選ぶ。WebアプリのNone選択はこの組み合わせに対応する。左右を逆にした場合は、中央側を必ず右手でUSB接続する構成にする。
 
 ## ポインティングデバイス設定
