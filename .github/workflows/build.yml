@@ -77,7 +77,11 @@ jobs:
           extra_modules="${GITHUB_WORKSPACE};${base_dir}/modules/zmk-pmw3610-driver;${base_dir}/modules/zmk-rgbled-widget"
           echo "zephyr_version=${ZEPHYR_VERSION}" >> $GITHUB_ENV
           echo "extra_west_args=${extra_west_args}" >> $GITHUB_ENV
-          echo "extra_cmake_args=${shield:+-DSHIELD=\"$shield\"}${zmk_load_arg} -DZMK_EXTRA_MODULES=\"${extra_modules}\"" >> $GITHUB_ENV
+          # The nRF52840 XIAO ZMK board variant reports this compatibility
+          # flag through Kconfig in local builds.  Keep it explicit in CI so
+          # the upstream board-compatibility guard cannot reject an otherwise
+          # successful UF2 build.
+          echo "extra_cmake_args=${shield:+-DSHIELD=\"$shield\"}${zmk_load_arg} -DZMK_EXTRA_MODULES=\"${extra_modules}\" -DCONFIG_ZMK_BOARD_COMPAT=y" >> $GITHUB_ENV
           echo "display_name=${shield:+$shield - }${board}" >> $GITHUB_ENV
           echo "artifact_name=${artifact_name:-${shield:+$shield-}${board//\//_}-zmk}" >> $GITHUB_ENV
 
