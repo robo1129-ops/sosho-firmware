@@ -71,9 +71,13 @@ jobs:
             extra_west_args="-S \"${snippet}\""
           fi
 
+          # The right-side sensor profiles use the SO-SHO PMW3610 and RGB
+          # widget modules.  Keep them explicit because isolated CI builds do
+          # not always discover west modules through ZMK_EXTRA_MODULES alone.
+          extra_modules="${GITHUB_WORKSPACE};${base_dir}/modules/zmk-pmw3610-driver;${base_dir}/modules/zmk-rgbled-widget"
           echo "zephyr_version=${ZEPHYR_VERSION}" >> $GITHUB_ENV
           echo "extra_west_args=${extra_west_args}" >> $GITHUB_ENV
-          echo "extra_cmake_args=${shield:+-DSHIELD=\"$shield\"}${zmk_load_arg}" >> $GITHUB_ENV
+          echo "extra_cmake_args=${shield:+-DSHIELD=\"$shield\"}${zmk_load_arg} -DZMK_EXTRA_MODULES=\"${extra_modules}\"" >> $GITHUB_ENV
           echo "display_name=${shield:+$shield - }${board}" >> $GITHUB_ENV
           echo "artifact_name=${artifact_name:-${shield:+$shield-}${board//\//_}-zmk}" >> $GITHUB_ENV
 
