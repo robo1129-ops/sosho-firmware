@@ -14,7 +14,7 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Download all firmware variants
+      - name: Download firmware artifacts
         uses: actions/download-artifact@v4
         with:
           name: firmware
@@ -22,114 +22,70 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Arrange firmware by sleep mode
+      - name: Arrange runtime firmware profiles
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p dist/firmware/sleep-5m dist/firmware/sleep-15m dist/firmware/sleep-30m dist/firmware/sleep-60m dist/firmware/sleep-off dist/firmware/recovery
-          while IFS= read -r -d '' file; do
+          for file in dist/firmware/runtime_*.uf2 dist/firmware/runtime_*.bin; do
+            [ -e "$file" ] || continue
             name="$(basename "$file")"
-            case "$name" in
-              sleep-5m_*) bucket="sleep-5m"; clean="${name#sleep-5m_}" ;;
-              sleep-15m_*) bucket="sleep-15m"; clean="${name#sleep-15m_}" ;;
-              sleep-30m_*) bucket="sleep-30m"; clean="${name#sleep-30m_}" ;;
-              sleep-60m_*) bucket="sleep-60m"; clean="${name#sleep-60m_}" ;;
-              sleep-off_*) bucket="sleep-off"; clean="${name#sleep-off_}" ;;
-              settings_reset*) bucket="recovery"; clean="$name" ;;
-              *) bucket="sleep-60m"; clean="$name" ;;
-            esac
-            mv "$file" "dist/firmware/$bucket/$clean"
-          done < <(find dist/firmware -maxdepth 1 -type f -print0)
+            clean="${name#runtime_}"
+            mv "$file" "dist/firmware/$clean"
+          done
 
-      - name: Add variant manifest
-        env:
-          BUILD_SHA: ${{ github.event.workflow_run.head_sha }}
-          BUILD_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}
+      - name: Add multilingual guide
+        shell: bash
         run: |
-          cat > dist/README.txt <<EOF
-          SO-SHO custom firmware
+          set -euo pipefail
+          cat > dist/README.txt <<'EOF'
+          SO-SHO runtime-sleep firmware
 
-          Build commit: ${BUILD_SHA}
-          Build run: ${BUILD_URL}
+          This package contains one firmware per hardware profile. Automatic sleep
+          is no longer split into separate folders: after flashing a runtime-sleep
+          build, choose Off or 1–1440 minutes in the SO-SHO Web editor and save it.
+          The build default before the first save is 30 minutes.
 
           Normal pair:
-            sosho_R_trackball = right / Central / trackball
-            sosho_L_trackpad  = left / Peripheral / trackpad
+            sosho_R_trackball.uf2 = right / Central / trackball
+            sosho_L_trackpad.uf2  = left / Peripheral / trackpad
 
-          Alternate pair:
-            sosho_R_trackpad  = right / Central / trackpad
-            sosho_L_trackball = left / Peripheral / trackball
-
-          The left trackpad uses Pinnacle sensitivity 1x and a 1/1 movement
-          scale so small motion is not attenuated during hardware validation.
-          The standard trackpad profile uses the official Pinnacle relative mode,
-          primary tap, and host-side double-click interpretation. Right-side
-          trackpad builds invert both X and Y for the physical orientation.
-          Right-click, held-contact right drag, and trackpad edge scrolling are
-          intentionally excluded from this stable package. The right Central
-          profiles expose the official ZMK Studio USB and BLE transports.
-
-          settings_reset is a separate recovery image. Do not flash it as a normal half.
-
-          Firmware is grouped by automatic-sleep timeout:
-            sleep-5m/    = 5 minutes
-            sleep-15m/   = 15 minutes
-            sleep-30m/   = 30 minutes
-            sleep-60m/   = 1 hour
-            sleep-off/   = automatic sleep disabled
-
-          Each folder contains the same hardware/profile combinations. Select matching
-          right/left UF2 files from one folder before flashing. A separate recovery/
-          folder is used for settings_reset when that image is present.
+          Alternate profiles are provided for right trackpad, left trackball, and
+          either blank module. Flash matching right and left profiles as a pair.
+          The right Central firmware provides the USB and BLE Studio transports.
+          The sleep setting is stored in firmware settings and is restored after reboot.
           EOF
+          cat > dist/README-ja.txt <<'EOF'
+          SO-SHO 実行時スリープ対応ファームウェア
 
-      - name: Add multilingual firmware guides
-        shell: bash
-        run: |
-          set -euo pipefail
-          for bucket in sleep-5m sleep-15m sleep-30m sleep-60m sleep-off; do
-            mkdir -p "dist/firmware/${bucket}"
-            cat > "dist/firmware/${bucket}/README-ja.txt" <<'EOF'
-          SO-SHO ファームウェア
+          ハードウェア構成ごとに1種類のファームウェアを収録しています。
+          スリープ時間ごとのフォルダは廃止しました。書き込み後、SO-SHO Webアプリで
+          「オフ」または1〜1440分を選び、保存してください。初回保存前の標準値は30分です。
 
-          このフォルダ内で右側と左側のUF2を1つずつ選び、同じスリープ設定の組み合わせで書き込んでください。
-          右側CentralはUSB接続用、左側は分割Peripheral用です。
-          右側トラックパッド版は物理配置に合わせてX/Y両軸を反転しています。
-          トラックパッドは公式relative modeとprimary tapを使用します。右クリック、長押し右ドラッグ、外周スクロールは非対応です。
+          通常構成は右Centralの sosho_R_trackball.uf2 と、左Peripheralの
+          sosho_L_trackpad.uf2 です。左右のUF2は対応する構成を1つずつ選びます。
+          スリープ設定はファームウェア設定へ保存され、再起動後も維持されます。
           EOF
-            cat > "dist/firmware/${bucket}/README-en.txt" <<'EOF'
-          SO-SHO firmware
+          cat > dist/README-zh-CN.txt <<'EOF'
+          SO-SHO 运行时休眠固件
 
-          Choose one right-side UF2 and one left-side UF2 from this folder and flash the matching sleep profile.
-          The right Central side is the USB host-facing side; the left side is the split Peripheral.
-          Right-side trackpad builds invert both X and Y for the physical placement.
-          Trackpads use the official relative mode and primary tap. Right-click, held right-drag, and edge scrolling are not included.
+          每种硬件配置只提供一个固件。不再按休眠时间分文件夹。刷写后在 SO-SHO Web
+          应用中选择关闭或 1–1440 分钟并保存。首次保存前的默认值为 30 分钟。
+          请选择匹配的右侧 Central 和左侧 Peripheral 固件。设置会保存到固件并在重启后保留。
           EOF
-            cat > "dist/firmware/${bucket}/README-zh-CN.txt" <<'EOF'
-          SO-SHO 固件
+          cat > dist/README-ko.txt <<'EOF'
+          SO-SHO 런타임 절전 펌웨어
 
-          请从本文件夹选择一个右侧 UF2 和一个左侧 UF2，并使用相同的休眠配置刷写。
-          右侧 Central 连接 USB，左侧作为分体 Peripheral。
-          右侧触控板固件会根据实体方向反转 X/Y 两个轴。
-          触控板使用官方相对模式和主点击。不包含右键、按住右拖以及外圈滚动。
+          하드웨어 프로필마다 하나의 펌웨어만 제공합니다. 절전 시간별 폴더는 삭제되었습니다.
+          플래시 후 SO-SHO 웹 앱에서 끄기 또는 1~1440분을 선택해 저장하세요. 최초 기본값은 30분입니다.
+          일치하는 오른쪽 Central과 왼쪽 Peripheral 펌웨어를 선택하세요. 설정은 재부팅 후에도 유지됩니다.
           EOF
-            cat > "dist/firmware/${bucket}/README-ko.txt" <<'EOF'
-          SO-SHO 펌웨어
+          cat > dist/README-th.txt <<'EOF'
+          เฟิร์มแวร์สลีปขณะทำงานของ SO-SHO
 
-          이 폴더에서 오른쪽 UF2 하나와 왼쪽 UF2 하나를 선택하고 같은 절전 설정으로 플래시하세요.
-          오른쪽 Central은 USB 연결용이며 왼쪽은 분할 Peripheral입니다.
-          오른쪽 트랙패드 펌웨어는 실제 배치에 맞춰 X/Y 축을 모두 반전합니다.
-          트랙패드는 공식 상대 모드와 기본 탭을 사용합니다. 우클릭, 누른 상태의 우 드래그, 가장자리 스크롤은 포함하지 않습니다.
+          มีเฟิร์มแวร์หนึ่งชุดต่อโปรไฟล์ฮาร์ดแวร์ ไม่แยกโฟลเดอร์ตามเวลาอีกต่อไป หลังแฟลชแล้ว
+          เลือกปิดหรือ 1–1440 นาทีในเว็บ SO-SHO และบันทึก ค่าเริ่มต้นก่อนบันทึกครั้งแรกคือ 30 นาที
+          ให้เลือกเฟิร์มแวร์ Central ด้านขวาและ Peripheral ด้านซ้ายที่ตรงกัน การตั้งค่าจะคงอยู่หลังรีบูต
           EOF
-            cat > "dist/firmware/${bucket}/README-th.txt" <<'EOF'
-          เฟิร์มแวร์ SO-SHO
-
-          เลือกไฟล์ UF2 ฝั่งขวาและฝั่งซ้ายอย่างละหนึ่งไฟล์จากโฟลเดอร์นี้ และแฟลชด้วยการตั้งค่าสลีปเดียวกัน
-          ฝั่งขวา Central ใช้เชื่อมต่อ USB ส่วนฝั่งซ้ายเป็น Peripheral แบบแยกส่วน
-          เฟิร์มแวร์แทร็กแพดฝั่งขวาจะกลับแกน X/Y ให้ตรงกับตำแหน่งจริง
-          แทร็กแพดใช้โหมดสัมพัทธ์อย่างเป็นทางการและการแตะหลัก ไม่รวมคลิกขวา การลากขวาขณะกดค้าง หรือการเลื่อนขอบ
-          EOF
-          done
 
       - name: Create firmware ZIP
         run: |
@@ -149,12 +105,6 @@ jobs:
           BUILD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           if ! gh release view latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release create latest \
-              --repo "$GITHUB_REPOSITORY" \
-              --target "$BUILD_SHA" \
-              --title "SO-SHO firmware (latest)" \
-              --notes "All SO-SHO firmware variants from the latest successful build."
+            gh release create latest --repo "$GITHUB_REPOSITORY" --target "$BUILD_SHA" --title "SO-SHO firmware (latest)" --notes "Runtime-sleep firmware profiles from the latest successful build."
           fi
-          gh release upload latest sosho-firmware-latest.zip \
-            --repo "$GITHUB_REPOSITORY" \
-            --clobber
+          gh release upload latest sosho-firmware-latest.zip --repo "$GITHUB_REPOSITORY" --clobber

@@ -19,11 +19,11 @@ Both use data-ready on P1.07. Source: <https://elekit.co.jp/support/faq/5255>.
 
 - 日常構成: `sosho_R_trackball`（右Central） + `sosho_L_trackpad`（左Peripheral）
 - 右側にトラックパッドを配置する構成では、右モジュールの実装向きに合わせてX/Yの両軸を反転する
-- 無操作時の自動スリープは、5分・15分・30分・1時間・スリープなしの5種類をビルドする。各種類はZIP内の `sleep-5m/`、`sleep-15m/`、`sleep-30m/`、`sleep-60m/`、`sleep-off/` フォルダに分けて収録する
+- 自動スリープは実行時設定に統一し、ハードウェア構成ごとに1種類だけビルドする。初期値は30分で、Webアプリからオフまたは1〜1440分へ変更して保存する
 - `build.yaml` は右CentralのStudio USB endpointと `CONFIG_ZMK_STUDIO=y` を維持する
 - settings reset buildと、他のtrackball / trackpad組み合わせもmatrixに残す
 - 最新成功ビルドの全バリエーションZIP: https://github.com/robo1129-ops/sosho-firmware/releases/download/latest/sosho-firmware-latest.zip
-- 全スリープ設定・全モジュール構成のZIP（Actionsの最新成功ビルド）: https://github.com/robo1129-ops/sosho-firmware/releases/download/latest/sosho-firmware-latest.zip
+- 全モジュール構成・実行時スリープ対応のZIP（Actionsの最新成功ビルド）: https://github.com/robo1129-ops/sosho-firmware/releases/download/latest/sosho-firmware-latest.zip
 - ZIPを作るActions: https://github.com/robo1129-ops/sosho-firmware/actions/workflows/package-firmware.yml
 
 ## フラッシュ容量とマクロ保存容量
@@ -34,13 +34,7 @@ Both use data-ready on P1.07. Source: <https://elekit.co.jp/support/faq/5255>.
 
 マクロは16スロット、1スロット最大512 bytes、最大64ステップで、マクロ本体の最大合計は 8,192 bytes（16 × 512）である。これはアプリケーション領域ではなく、32 KiBの設定保存領域へNVSとして保存する。NVSのレコード管理領域やキーマップなど他の設定も同じ保存領域を使うため、8,192 bytes全てがそのまま空き容量になるわけではないが、現在のマクロ上限は設定保存領域に対して十分小さい。実機の設定領域の残量そのものは、NVSの既存データ量を読み取らない限りビルド成果物だけからは確定できない。
 
-ZIPには次の全パターンが各スリープ時間フォルダに含まれます。
-
-- `sleep-5m/`: 5分で自動スリープ
-- `sleep-15m/`: 15分で自動スリープ
-- `sleep-30m/`: 30分で自動スリープ
-- `sleep-60m/`: 1時間で自動スリープ
-- `sleep-off/`: 自動スリープなし
+ZIPには、スリープ時間で分けず、次のハードウェア構成を1種類ずつ含めます。書き込み後にWebアプリからスリープ時間を変更できます。
 
 各フォルダには、以下の右/左モジュール組み合わせが同じ命名規則で入ります。
 
@@ -58,7 +52,7 @@ ZIPには次の全パターンが各スリープ時間フォルダに含まれ�
 
 ## ポインティングデバイス設定
 
-自動スリープは、SO-SHO拡張RPC対応ファームウェアでは実行時にオフまたは分単位で変更できる。未対応の旧ファームウェアや拡張を無効にした構成では、従来どおりビルド時設定となるため、ZIP内の希望する `sleep-*` フォルダから左右のUF2を書き込む。Webエディターは、接続後に実機が `runtime_control` を返した場合だけ保存操作を有効にする。
+自動スリープは、SO-SHO拡張RPC対応ファームウェアで実行時にオフまたは分単位で変更できる。接続後に実機が `runtime_control` を返した場合だけWebエディターの保存操作を有効にする。古いファームウェアでは保存できないため、今回のruntime-sleep版へ更新する。
 
 ### Trackball
 

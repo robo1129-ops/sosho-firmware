@@ -1,6 +1,7 @@
 # SO-SHO trackpad gesture build
 
-全スリープ設定・全モジュール構成をまとめた最新ZIPは、GitHub Actionsの成功ビルドから公開されます。https://github.com/robo1129-ops/sosho-firmware/releases/download/latest/sosho-firmware-latest.zip
+実行時スリープ対応・全モジュール構成をまとめた最新ZIPは、GitHub Actionsの成功ビルドから公開されます。https://github.com/robo1129-ops/sosho-firmware/releases/download/latest/sosho-firmware-latest.zip
+スリープ時間ごとのフォルダはありません。書き込み後、SO-SHO Webアプリでオフまたは1〜1440分を保存してください。初期値は30分です。
 このフォルダには個別検証用のUF2/ZIPを置く場合がありますが、通常は最新リリースZIPを使用してください。
 
 ## 書き込むファイル
