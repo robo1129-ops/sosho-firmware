@@ -11,7 +11,9 @@ manifest:
   projects:
     - name: zmk
       remote: zmkfirmware
-      revision: main
+      # Pin the ZMK revision used by the locally verified SO-SHO patches.
+      # Studio RPC and the custom hold-tap patch must build against this API.
+      revision: 4dd95d7840eb3d5a3f59bb29fbf1ab054715ef85
       import: app/west.yml
     - name: zmk-rgbled-widget
       remote: caksoylar
