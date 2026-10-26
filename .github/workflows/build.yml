@@ -115,10 +115,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # west modules are cached between runs.  A previous build may have
+          # left the SO-SHO patches applied, which makes a second git apply
+          # fail before the actual firmware build starts.  Always restore the
+          # pinned clean revisions before applying this build's patches.
+          git -C zmk reset --hard HEAD
+          git -C zmk clean -fdx
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-core-runtime.patch"
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-hold-tap-same-key-hold.patch"
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-studio-usb-uart.patch"
           studio_messages_dir="${base_dir}/modules/msgs/zmk-studio-messages"
+          git -C "${studio_messages_dir}" reset --hard HEAD
+          git -C "${studio_messages_dir}" clean -fdx
           git -C "${studio_messages_dir}" apply "${GITHUB_WORKSPACE}/patches/zmk-studio-messages.patch"
 
       - name: Check ZMK revision
