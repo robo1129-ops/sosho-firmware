@@ -165,10 +165,12 @@ jobs:
           # A board qualifier ending in /zmk is already the explicit ZMK
           # variant. The generic upstream guard compares the unqualified
           # board name (xiao_ble) and would report a false failure for it.
-          if [[ "${{ matrix.board }}" == */zmk ]]; then
-            echo "Explicit ZMK board variant selected: ${{ matrix.board }}"
-            exit 0
-          fi
+          case "${{ matrix.board }}" in
+            */zmk)
+              echo "Explicit ZMK board variant selected: ${{ matrix.board }}"
+              exit 0
+              ;;
+          esac
           if ! (grep "CONFIG_ZMK_BOARD_COMPAT=y" "${{ env.build_dir }}/zephyr/.config" > /dev/null)
           then
             original_board=$(echo "${{ matrix.board }}" | sed -e 's$/.*$$')
