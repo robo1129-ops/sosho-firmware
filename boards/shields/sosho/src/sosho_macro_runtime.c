@@ -55,8 +55,8 @@
 #define SOSHO_STATUS_TOO_LARGE 4
 #define SOSHO_STATUS_BAD_VALUE 5
 
-#define SOSHO_MAX_PAYLOAD 224
-#define SOSHO_MAX_STEPS 8
+#define SOSHO_MAX_PAYLOAD 512
+#define SOSHO_MAX_STEPS 64
 #define SOSHO_MAX_WAIT_MS 60000U
 #define SOSHO_STEP_SIZE 7
 #define SOSHO_WIRE_PAYLOAD_MAX 8
@@ -206,7 +206,14 @@ int sosho_macro_delete(uint8_t id) {
 
     memset(macro_blob[id], 0, sizeof(macro_blob[id]));
     macro_blob_len[id] = 0;
-    return settings_delete(macro_settings_keys[id]);
+    int err = settings_delete(macro_settings_keys[id]);
+    /*
+     * The Studio editor sends delete requests for every unused slot while
+     * saving the complete macro table. A missing setting is already the
+     * desired state, so it must not turn an otherwise valid save into an
+     * error.
+     */
+    return err == -ENOENT ? 0 : err;
 }
 
 static void send_response(struct bt_conn *conn, uint8_t op, uint8_t txid, uint8_t status,

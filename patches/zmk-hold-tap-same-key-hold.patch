@@ -1,0 +1,74 @@
+diff --git a/app/Kconfig.behaviors b/app/Kconfig.behaviors
+index da9bcc4..9c79dcf 100644
+--- a/app/Kconfig.behaviors
++++ b/app/Kconfig.behaviors
+@@ -59,6 +59,16 @@ config ZMK_BEHAVIOR_HOLD_TAP_MAX_CAPTURED_EVENTS
+     help
+       Max number of captured system events while waiting to resolve hold taps
+ 
++config ZMK_BEHAVIOR_HOLD_TAP_SAME_KEY_HOLD
++    bool "Keep the tap binding held after a same-key tap and re-press"
++    default n
++    help
++      When enabled, after a tap and release, pressing the same hold-tap key
++      again within the tapping window immediately selects the tap binding and
++      keeps it pressed until the physical key is released. This allows a
++      Backspace tap/hold key to repeat Backspace after tap-release-repress.
++      A hold from an idle state still selects the configured hold binding.
++
+ endif
+ 
+ config ZMK_BEHAVIOR_KEY_TOGGLE
+diff --git a/app/src/behaviors/behavior_hold_tap.c b/app/src/behaviors/behavior_hold_tap.c
+index 97bb464..3b4064a 100644
+--- a/app/src/behaviors/behavior_hold_tap.c
++++ b/app/src/behaviors/behavior_hold_tap.c
+@@ -149,6 +149,39 @@ static bool is_quick_tap(struct active_hold_tap *hold_tap) {
+     }
+ }
+ 
++/*
++ * SO-SHO uses the physical-key interpretation users expect from a normal
++ * switch: tap, release, then press the same key again and keep it down means
++ * that the second press is held.  Upstream quick-tap intentionally resolves
++ * this sequence as another tap, which is useful for some keymaps but prevents
++ * a real key-down from reaching the host for hold-tap bindings.
++ */
++static bool is_same_key_recent_tap(struct active_hold_tap *hold_tap) {
++    if (last_tapped.position != hold_tap->position ||
++        hold_tap->timestamp < last_tapped.timestamp) {
++        return false;
++    }
++
++    int64_t window_ms = hold_tap->config->tapping_term_ms;
++    if (hold_tap->config->quick_tap_ms > window_ms) {
++        window_ms = hold_tap->config->quick_tap_ms;
++    }
++
++    return (hold_tap->timestamp - last_tapped.timestamp) < window_ms;
++}
++
++static bool should_resolve_quick_tap(struct active_hold_tap *hold_tap) {
++#if IS_ENABLED(CONFIG_ZMK_BEHAVIOR_HOLD_TAP_SAME_KEY_HOLD)
++    if (is_same_key_recent_tap(hold_tap)) {
++        LOG_DBG("%d same-key re-press resolves tap so the tap binding remains held",
++                hold_tap->position);
++        return true;
++    }
++#endif
++
++    return is_quick_tap(hold_tap);
++}
++
+ static int capture_event(struct captured_event *data) {
+     for (int i = 0; i < ZMK_BHV_HOLD_TAP_MAX_CAPTURED_EVENTS; i++) {
+         if (captured_events[i].tag == ET_NONE) {
+@@ -625,7 +653,7 @@ static int on_hold_tap_binding_pressed(struct zmk_behavior_binding *binding,
+     LOG_DBG("%d new undecided hold_tap", event.position);
+     undecided_hold_tap = hold_tap;
+ 
+-    if (is_quick_tap(hold_tap)) {
++    if (should_resolve_quick_tap(hold_tap)) {
+         decide_hold_tap(hold_tap, HT_QUICK_TAP);
+     }
+ 

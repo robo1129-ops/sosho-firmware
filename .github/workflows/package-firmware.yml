@@ -2,7 +2,7 @@ name: Package firmware ZIP
 
 on:
   workflow_run:
-    workflows: ["Build ZMK firmware"]
+    workflows: ["Build SO-SHO firmware with custom ZMK extensions"]
     types: [completed]
 
 permissions:

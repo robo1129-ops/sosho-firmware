@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #define SOSHO_MAX_MACROS 16
-#define SOSHO_MAX_MACRO_PAYLOAD 224
+#define SOSHO_MAX_MACRO_PAYLOAD 512
 
 /* Run a macro stored by the SO-SHO runtime macro service. */
 int sosho_macro_run(uint8_t id);

@@ -116,6 +116,7 @@ jobs:
         run: |
           set -euo pipefail
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-core-runtime.patch"
+          git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-hold-tap-same-key-hold.patch"
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-studio-usb-uart.patch"
           studio_messages_dir="${base_dir}/modules/msgs/zmk-studio-messages"
           git -C "${studio_messages_dir}" apply "${GITHUB_WORKSPACE}/patches/zmk-studio-messages.patch"

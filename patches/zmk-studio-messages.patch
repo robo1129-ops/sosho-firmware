@@ -84,8 +84,8 @@ new file mode 100644
 --- /dev/null
 +++ b/proto/zmk/macro.options.in
 @@ -0,0 +1,2 @@
-+zmk.macro.SetMacroRequest.data max_size:224
-+zmk.macro.MacroData.data max_size:224
++zmk.macro.SetMacroRequest.data max_size:512
++zmk.macro.MacroData.data max_size:512
 diff --git a/proto/zmk/sosho.proto b/proto/zmk/sosho.proto
 new file mode 100644
 --- /dev/null
