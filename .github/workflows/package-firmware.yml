@@ -86,6 +86,22 @@ jobs:
           เลือกปิดหรือ 1–1440 นาทีในเว็บ SO-SHO และบันทึก ค่าเริ่มต้นก่อนบันทึกครั้งแรกคือ 30 นาที
           ให้เลือกเฟิร์มแวร์ Central ด้านขวาและ Peripheral ด้านซ้ายที่ตรงกัน การตั้งค่าจะคงอยู่หลังรีบูต
           EOF
+          cat > dist/README-es.txt <<'EOF'
+          Firmware SO-SHO con suspensión en tiempo de ejecución
+
+          Hay un firmware por perfil de hardware. Después de escribirlo, elige Desactivada
+          o 1–1440 minutos en la aplicación Web de SO-SHO y guarda. El valor inicial es 30 minutos.
+          La pareja normal es el Central derecho sosho_R_trackball.uf2 y el Peripheral izquierdo
+          sosho_L_trackpad.uf2. Las configuraciones de suspensión se conservan tras reiniciar.
+          EOF
+          cat > dist/README-de.txt <<'EOF'
+          SO-SHO-Firmware mit Laufzeit-Schlafmodus
+
+          Für jedes Hardwareprofil gibt es ein Firmware. Nach dem Schreiben in der SO-SHO-Web-App
+          Aus oder 1–1440 Minuten wählen und speichern. Der Anfangswert beträgt 30 Minuten.
+          Das normale Paar ist sosho_R_trackball.uf2 rechts und sosho_L_trackpad.uf2 links.
+          Die Einstellung bleibt nach einem Neustart erhalten.
+          EOF
 
       - name: Create firmware ZIP
         run: |
