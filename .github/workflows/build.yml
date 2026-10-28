@@ -62,21 +62,17 @@ jobs:
             export zmk_load_arg=" -DZMK_EXTRA_MODULES='${GITHUB_WORKSPACE}'"
             new_tmp_dir="${TMPDIR:-/tmp}/zmk-config"
             mkdir -p "${new_tmp_dir}"
-            echo "base_dir=${new_tmp_dir}" >> $GITHUB_ENV
+            base_dir="${new_tmp_dir}"
           else
-            echo "base_dir=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
+            base_dir="${GITHUB_WORKSPACE}"
           fi
-
-          if [ -n "${snippet}" ]; then
-            extra_west_args="-S \"${snippet}\""
-          fi
+          echo "base_dir=${base_dir}" >> $GITHUB_ENV
 
           # The right-side sensor profiles use the SO-SHO PMW3610 and RGB
           # widget modules.  Keep them explicit because isolated CI builds do
           # not always discover west modules through ZMK_EXTRA_MODULES alone.
-          extra_modules="${GITHUB_WORKSPACE};${base_dir}/modules/zmk-pmw3610-driver;${base_dir}/modules/zmk-rgbled-widget"
+          extra_modules="${GITHUB_WORKSPACE};${base_dir}/modules/zmk-pmw3610-driver;${base_dir}/modules/zmk-rgbled-widget;${base_dir}/modules/zmk_encoder"
           echo "zephyr_version=${ZEPHYR_VERSION}" >> $GITHUB_ENV
-          echo "extra_west_args=${extra_west_args}" >> $GITHUB_ENV
           echo "extra_cmake_args=${shield:+-DSHIELD=\"$shield\"}${zmk_load_arg} -DZMK_EXTRA_MODULES=\"${extra_modules}\"" >> $GITHUB_ENV
           echo "display_name=${shield:+$shield - }${board}" >> $GITHUB_ENV
           echo "artifact_name=${artifact_name:-${shield:+$shield-}${board//\//_}-zmk}" >> $GITHUB_ENV
@@ -146,8 +142,13 @@ jobs:
 
       - name: West Build (${{ env.display_name }})
         working-directory: ${{ env.base_dir }}
-        shell: sh -x {0}
-        run: west build -s zmk/app -d "${{ env.build_dir }}" -b "${{ matrix.board }}" ${{ env.extra_west_args }} -- -DZMK_CONFIG=${{ env.base_dir }}/config ${{ env.extra_cmake_args }} ${{ matrix.cmake-args }}
+        shell: bash -x {0}
+        run: |
+          west_args=(-s zmk/app -d "${{ env.build_dir }}" -b "${{ matrix.board }}")
+          if [ -n "${{ matrix.snippet }}" ]; then
+            west_args+=( -S "${{ matrix.snippet }}" )
+          fi
+          west build "${west_args[@]}" -- -DZMK_CONFIG="${{ env.base_dir }}/config" ${{ env.extra_cmake_args }} ${{ matrix.cmake-args }}
 
       - name: Warn about building from main if build fails
         if: failure() && env.zmk_revision == 'main'

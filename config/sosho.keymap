@@ -28,14 +28,12 @@
             #binding-cells = <1>;
         };
         ec_ms_l: ec_ms_h {
-            compatible = "zmk,behavior-sensor-rotate-var";
+            compatible = "zmk,behavior-encoder-mouse-scroll";
             #sensor-binding-cells = <2>;
-            bindings = <&msc>, <&msc>;
         };
         ec_ms_r: ec_ms_v {
-            compatible = "zmk,behavior-sensor-rotate-var";
+            compatible = "zmk,behavior-encoder-mouse-scroll";
             #sensor-binding-cells = <2>;
-            bindings = <&msc>, <&msc>;
         };
     };
 };
@@ -81,7 +79,7 @@ keymap {
             &kp TAB    &kp Q   &kp W  &kp E  &kp R  &kp T      &kp Y  &kp U  &kp I      &kp O    &kp P     &kp BSPC
             &kp LCTRL  &kp A   &kp S  &kp D  &kp F  &kp G      &kp H  &kp J  &kp K      &kp L    &kp SQT   &kp ENTER
             &kp LSHFT  &kp Z   &kp X  &kp C  &kp V  &kp B      &kp N  &kp M  &kp COMMA  &kp DOT  &kp SLASH &kp LSHFT
-            &kp ESC    &kp LALT              &lt 1 LANG5  &kp SPACE  &mo 1  &kp LA(GRAVE)              &mo 3     &sosho_bootloader
+            &kp ESC    &kp LALT              &lt 1 GRAVE  &kp SPACE  &mo 1  &kp LA(GRAVE)              &mo 3     &sosho_bootloader
         >;
         // Layer 0's right thumb MO(3) key exposes the Layer 3 pairing/numeric
         // fallback without changing the normal typing layer.

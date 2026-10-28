@@ -21,7 +21,8 @@
     status =  "okay";
 };
 
-/* Only the right Central exposes the reserved bottom-right bootloader key. */
+/* The initial right-Central keymap includes a physical recovery action, but
+ * the Studio runtime keymap may replace it like any other binding. */
 &sosho_bootloader {
     compatible = "zmk,behavior-reset";
     type = <RST_UF2>;

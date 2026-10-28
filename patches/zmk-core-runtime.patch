@@ -70,16 +70,6 @@ index 1d51975..eac843e 100644
      const zmk_keymap_SetLayerBindingRequest *set_req =
          &req->subsystem.keymap.request_type.set_layer_binding;
  
-+    /* SO-SHO reserves the global bottom-right physical position for the
-+     * right-Central bootloader action. Keep Studio from replacing it with a
-+     * normal binding. The left module uses the same slot as transparent, so
-+     * this guard is intentionally global and position-based. */
-+    if (set_req->key_position == 43) {
-+        LOG_WRN("Rejecting Studio write to reserved SO-SHO bootloader key");
-+        return KEYMAP_RESPONSE(
-+            set_layer_binding,
-+            zmk_keymap_SetLayerBindingResponse_SET_LAYER_BINDING_RESP_INVALID_LOCATION);
-+    }
 +
      zmk_behavior_local_id_t bid = set_req->binding.behavior_id;
  

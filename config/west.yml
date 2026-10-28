@@ -8,6 +8,8 @@ manifest:
       url-base: https://github.com/caksoylar
     - name: badjeff
       url-base: https://github.com/badjeff
+    - name: elekit-official
+      url-base: https://github.com/elekit-official
   projects:
     - name: zmk
       remote: zmkfirmware
@@ -23,5 +25,9 @@ manifest:
       remote: badjeff
       revision: main
       path: modules/zmk-pmw3610-driver
+    - name: zmk_encoder
+      remote: elekit-official
+      revision: 1a34a55
+      path: modules/zmk_encoder
   self:
     path: config
