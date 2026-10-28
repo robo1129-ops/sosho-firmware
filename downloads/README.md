@@ -9,12 +9,12 @@
 
 ## 書き込むファイル
 
-通常の構成では、右側のCentralへ `sosho_R_trackball.uf2`、左側のPeripheralへ `sosho_L_trackpad.uf2` を書き込みます。
+通常の構成では、右側のCentralへ `sosho-right-trackball.uf2`、左側のPeripheralへ `sosho-left-trackpad.uf2` を書き込みます。
 
-- `sosho_R_trackball.uf2`: 右・Central・トラックボール
-- `sosho_L_trackpad.uf2`: 左・Peripheral・トラックパッド
-- `sosho_R_trackpad.uf2`: 右・Central・トラックパッド構成を使う場合
-- `sosho_R_none.uf2`: 右側をブランクのダミーモジュールにする場合
+- `sosho-right-trackball.uf2`: 右・Central・トラックボール
+- `sosho-left-trackpad.uf2`: 左・Peripheral・トラックパッド
+- `sosho-right-trackpad.uf2`: 右・Central・トラックパッド構成を使う場合
+- `sosho-right-none.uf2`: 右側をブランクのダミーモジュールにする場合
 
 ## トラックパッドの操作
 
@@ -28,4 +28,6 @@
 
 ## 注意
 
-この成果物はローカルでビルド済みですが、実機への書き込みと人の操作による確認はまだ行っていません。書き込み前に、現在使っているUF2を保存してください。キーマップやStudio通信の既存機能は変更していません。
+半角／全角は、Windows US配列・日本語IMEで確実に切り替えられるよう、初期配列とWebアプリの人間向け項目を左Alt+Graveとして扱います。明示的なLANG5は別のキーコードとして保持します。
+
+この版は全6構成をローカルビルド済みです。右トラックボール版は右側へ書き込み後、XIAO-BOOTの切断と通常USB（キーボード・マウス・COM11）への復帰まで確認しています。書き込み前に、現在使っているUF2を保存してください。
