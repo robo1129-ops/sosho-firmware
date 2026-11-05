@@ -1,0 +1,76 @@
+diff --git a/src/pixart.h b/src/pixart.h
+index c95ee31..1e266b4 100644
+--- a/src/pixart.h
++++ b/src/pixart.h
+@@ -27,7 +27,7 @@ struct pixart_data {
+     bool                         sw_smart_flag; // for pmw3610 smart algorithm
+ 
+     struct gpio_callback         irq_gpio_cb; // motion pin irq callback
+-    struct k_work                trigger_work; // realtrigger job
++    struct k_work_delayable      trigger_work; // rate-limited sensor job
+ 
+     struct k_work_delayable      init_work; // the work structure for delayable init steps
+     int                          async_init_step;
+diff --git a/src/pmw3610.c b/src/pmw3610.c
+index e0cb56d..7c85a2d 100644
+--- a/src/pmw3610.c
++++ b/src/pmw3610.c
+@@ -11,6 +11,7 @@
+ #include <zephyr/input/input.h>
+ #include <zephyr/pm/device.h>
+ #include <zmk/keymap.h>
++#include <zmk/usb.h>
+ #include <zmk/events/activity_state_changed.h>
+ #include "pmw3610.h"
+ 
+@@ -464,11 +465,7 @@ static int pmw3610_report_data(const struct device *dev) {
+ #endif
+ 
+ #if CONFIG_PMW3610_ALT_REPORT_INTERVAL_MIN > 0
+-    // purge accumulated delta, if last sampled had not been reported on last report tick
+-    if (now - data->last_smp_time >= CONFIG_PMW3610_ALT_REPORT_INTERVAL_MIN) {
+-        data->dx = 0;
+-        data->dy = 0;
+-    }
++    // Never discard motion accumulated while waiting for a report slot.
+     data->last_smp_time = now;
+ #endif
+ 
+@@ -478,7 +475,13 @@ static int pmw3610_report_data(const struct device *dev) {
+ 
+ #if CONFIG_PMW3610_ALT_REPORT_INTERVAL_MIN > 0
+     // strict to report inerval
+-    if (now - data->last_rpt_time < CONFIG_PMW3610_ALT_REPORT_INTERVAL_MIN) {
++    int interval = CONFIG_PMW3610_ALT_REPORT_INTERVAL_MIN;
++    if (!zmk_usb_is_powered()) {
++        interval = (interval * 3 + 1) / 2;
++    }
++    if (now - data->last_rpt_time < interval) {
++        k_work_reschedule(&data->trigger_work,
++                          K_MSEC(interval - (now - data->last_rpt_time)));
+         return 0;
+     }
+ #endif
+@@ -511,11 +514,11 @@ static void pmw3610_gpio_callback(const struct device *gpiob, struct gpio_callba
+     struct pixart_data *data = CONTAINER_OF(cb, struct pixart_data, irq_gpio_cb);
+     const struct device *dev = data->dev;
+     pmw3610_set_interrupt(dev, false);
+-    k_work_submit(&data->trigger_work);
++    k_work_schedule(&data->trigger_work, K_NO_WAIT);
+ }
+ 
+ static void pmw3610_work_callback(struct k_work *work) {
+-    struct pixart_data *data = CONTAINER_OF(work, struct pixart_data, trigger_work);
++    struct pixart_data *data = CONTAINER_OF(k_work_delayable_from_work(work), struct pixart_data, trigger_work);
+     const struct device *dev = data->dev;
+     pmw3610_report_data(dev);
+     pmw3610_set_interrupt(dev, true);
+@@ -573,7 +576,7 @@ static int pmw3610_init(const struct device *dev) {
+     data->sw_smart_flag = false;
+ 
+     // init trigger handler work
+-    k_work_init(&data->trigger_work, pmw3610_work_callback);
++    k_work_init_delayable(&data->trigger_work, pmw3610_work_callback);
+ 
+     // init irq routine
+     err = pmw3610_init_irq(dev);

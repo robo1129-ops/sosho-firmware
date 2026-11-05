@@ -13,6 +13,7 @@
 #include <zmk/behavior.h>
 #include <zmk/endpoints.h>
 #include <zmk/hid.h>
+#include <zmk/split/central.h>
 
 #include "sosho_runtime_scale.h"
 
@@ -25,6 +26,7 @@ enum sosho_control_action {
     SOSHO_TRACKPAD_UP,
     SOSHO_SCROLL_DOWN,
     SOSHO_SCROLL_UP,
+    SOSHO_LEFT_BOOTLOADER,
 };
 
 static int current_cpi = 200;
@@ -61,6 +63,7 @@ static const struct behavior_parameter_value_metadata values[] = {
     {.display_name = "Trackpad +", .type = BEHAVIOR_PARAMETER_VALUE_TYPE_VALUE, .value = SOSHO_TRACKPAD_UP},
     {.display_name = "Scroll -", .type = BEHAVIOR_PARAMETER_VALUE_TYPE_VALUE, .value = SOSHO_SCROLL_DOWN},
     {.display_name = "Scroll +", .type = BEHAVIOR_PARAMETER_VALUE_TYPE_VALUE, .value = SOSHO_SCROLL_UP},
+    {.display_name = "Left Bootloader", .type = BEHAVIOR_PARAMETER_VALUE_TYPE_VALUE, .value = SOSHO_LEFT_BOOTLOADER},
 };
 
 static const struct behavior_parameter_metadata_set metadata_set = {
@@ -78,6 +81,11 @@ static int controls_pressed(struct zmk_behavior_binding *binding,
                             struct zmk_behavior_binding_event event) {
     ARG_UNUSED(event);
     switch (binding->param1) {
+    case SOSHO_LEFT_BOOTLOADER: {
+        struct zmk_behavior_binding remote = {.behavior_dev = "bootload"};
+        event.source = 0;
+        return zmk_split_central_invoke_behavior(0, &remote, event, true);
+    }
     case SOSHO_CPI_DOWN:
         return set_cpi(MAX(200, current_cpi - 200));
     case SOSHO_CPI_UP:

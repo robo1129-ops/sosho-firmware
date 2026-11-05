@@ -1,0 +1,20 @@
+SO-SHO update 2026-11-05
+
+Left Bootloader / 左側ブートローダー:
+Assign BOOTLOADER_LEFT in the web editor, save, then press the assigned key.
+The right Central sends the standard bootload behavior to left peripheral 0.
+The left module must be powered on and connected over the split link.
+The right module stays in normal mode. USB must be connected to the left
+module to access its UF2 drive after the action.
+既存の左側ファームに標準bootloadが含まれる場合、そのまま利用できます。
+左側が起動モードになった後、UF2を書き込むには左側へのUSB接続が必要です。
+
+Trackball reporting / トラックボール報告周期:
+USB powered: 12 ms (about 83 reports/s).
+Battery powered: 18 ms (about 56 reports/s, two thirds of powered rate).
+CPI, movement scale and orientation remain unchanged.
+Pending movement is accumulated and sent by delayed work, including the
+last movement when the ball stops between reporting slots.
+
+Physical bootloader entry and battery-powered smoothness require hardware
+verification after flashing; build success alone does not prove these.
