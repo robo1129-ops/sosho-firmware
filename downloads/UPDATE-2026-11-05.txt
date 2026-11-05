@@ -18,3 +18,23 @@ last movement when the ball stops between reporting slots.
 
 Physical bootloader entry and battery-powered smoothness require hardware
 verification after flashing; build success alone does not prove these.
+
+Hold-tap layer fix / ホールドによるレイヤー移動の修正:
+The hold-tap extension now keeps split-half identity with the recent tap
+record, so a matrix position on the other half cannot be mistaken for the
+same key. A recent tap of a momentary-layer hold-tap no longer forces the next
+press to resolve as a tap; holding it now reaches the configured layer hold
+after the normal tapping term. Other hold-tap keys retain the SO-SHO same-key
+re-press behavior for continuous key output.
+タップ直後の再押下判定に左右半分の識別情報を追加し、反対側の同じ行列番号を
+誤認識しないようにしました。モーメンタリーレイヤーのホールドタップは、直前に
+タップしていても次の長押しをタップとして確定せず、通常の判定時間後に設定された
+レイヤー保持へ移行します。その他のホールドタップは従来どおり同一キー再押下による
+連続入力を維持します。レイヤータップは押下直後からホールド側を有効化し、タップだった場合だけ解除してからタップを送るため、レイヤー保持時の200ms判定待ちが入力停止のように見える状態を避けます。
+
+The right Central trackball UF2 was rebuilt locally and written to the
+connected XIAO nRF52840 Plus bootloader. Build result: flash 36.38%, RAM
+35.66%, UF2 587,264 bytes. 通常USB（キーボード・マウス・COM11）への復帰と、Webアプリから5レイヤーを読み取れることも確認しました。
+右Centralトラックボール用UF2をローカルで再ビルドし、接続中のXIAO nRF52840
+Plusブートローダーへ書き込みました。ビルド結果はフラッシュ36.38%、RAM35.66%、
+UF2 587,264 bytesです。通常USB（キーボード・マウス・COM11）への復帰と、Webアプリから5レイヤーを読み取れることも確認しました。

@@ -46,6 +46,17 @@
     acceleration-exponent = <0>;   // 加速なし
 };
 
+/*
+ * Layer-tap keys must activate their hold behavior immediately.  Without
+ * this, ZMK keeps the key undecided for tapping-term-ms (200 ms here), which
+ * feels like a temporary input/link pause when the user holds a layer key.
+ * If the key is released as a tap, ZMK releases the provisional layer before
+ * sending the tap binding, so the half/full-width tap remains unchanged.
+ */
+&lt {
+    hold-while-undecided;
+};
+
 / {
     combos {
         compatible = "zmk,combos";
