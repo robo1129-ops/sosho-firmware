@@ -24,6 +24,10 @@ Both use data-ready on P1.07. Source: <https://elekit.co.jp/support/faq/5255>.
 - settings reset buildと、他のtrackball / trackpad組み合わせもmatrixに残す
 - 最新成功ビルドの全バリエーションZIP: https://github.com/robo1129-ops/sosho-firmware/releases/download/latest/sosho-firmware-latest.zip
 - 全モジュール構成・実行時スリープ対応のZIP（Actionsの最新成功ビルド）: https://github.com/robo1129-ops/sosho-firmware/releases/download/latest/sosho-firmware-latest.zip
+
+### Windowsローカルビルド
+
+Windowsでは `windows-build\build-windows.ps1` を使い、Python/west・CMake・Ninja・Arm GNU Toolchainを同じ手順で準備して右側Central向けUF2をローカル生成できる。必要なツールを `python -m pip install --user west cmake ninja` で揃え、`Set-ExecutionPolicy -Scope Process Bypass` の後に `.\windows-build\build-windows.ps1 -Shield sosho_R_trackball -Clean` を実行する。生成物は `build-windows\sosho_R_trackball\zephyr\zmk.uf2` であり、書き込みはドライブを確認してから手動で行う。
 - ZIPを作るActions: https://github.com/robo1129-ops/sosho-firmware/actions/workflows/package-firmware.yml
 
 ## フラッシュ容量とマクロ保存容量
@@ -144,5 +148,5 @@ Webの「左側ブートローダー」をキーに割り当てると、右Centr
 
 マクロにはBT0〜BT4、次／前プロファイル、BT切断、選択プロファイル消去、全プロファイル消去を追加しました。ZMKの仕様上、複数のBluetoothホストへ同時にキーストロークを送る機能ではなく、マクロ内で接続先を選択・切断するための操作です。長いマクロは最大64ステップ、1ステップの待ち時間は初期値1msです。
 
-今回の右Central用ローカルビルドはフラッシュ36.39%、RAM35.66%、UF2 587,776 bytes、SHA-256 `454515290895D21A39BE4635014658F9567C014A4DE51B6CA736B64E6BC6244A` です。センサー共通の固定起動待ちも1000msから40msへ短縮しています。配布ZIPにも同じ最新版を収録します。実機書き込み後は、ブートローダードライブが消えて通常USBへ戻ることを確認し、最終状態をこの修正版にします。
+今回の右Central用ローカルビルドはフラッシュ36.60%、RAM35.66%、UF2 590,848 bytes、SHA-256 `6E8F22672B17BABC3EF4C9CBBB8309EBDA72D6461ACF1AAAE41E150BC9711824` です。センサー共通の固定起動待ちも1000msから40msへ短縮しています。配布ZIPにも同じ最新版を収録します。実機書き込み後は、ブートローダードライブが消えて通常USBへ戻ることを確認し、最終状態をこの修正版にします。
 

@@ -1,0 +1,10 @@
+.west/
+zmk/
+zephyr/
+modules/
+optional/
+tools/
+bootloader/
+build-windows/
+**/__pycache__/
+*.pyc

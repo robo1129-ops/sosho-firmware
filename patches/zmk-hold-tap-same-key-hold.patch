@@ -5,7 +5,8 @@ index da9bcc4..1f26791 100644
 @@ -59,6 +59,16 @@ config ZMK_BEHAVIOR_HOLD_TAP_MAX_CAPTURED_EVENTS
      help
        Max number of captured system events while waiting to resolve hold taps
-
+-
++
 +config ZMK_BEHAVIOR_HOLD_TAP_SAME_KEY_HOLD
 +    bool "Keep the tap binding held after a same-key tap and re-press"
 +    default n
@@ -17,7 +18,8 @@ index da9bcc4..1f26791 100644
 +      A hold from an idle state still selects the configured hold binding.
 +
  endif
-
+-
++
  config ZMK_BEHAVIOR_KEY_TOGGLE
 diff --git a/app/src/behaviors/behavior_hold_tap.c b/app/src/behaviors/behavior_hold_tap.c
 index 97bb464..4366cbb 100644
@@ -59,7 +61,7 @@ index 97bb464..4366cbb 100644
  }
  
  static bool is_quick_tap(struct active_hold_tap *hold_tap) {
-@@ -149,6 +161,41 @@ static bool is_quick_tap(struct active_hold_tap *hold_tap) {
+@@ -149,6 +161,47 @@ static bool is_quick_tap(struct active_hold_tap *hold_tap) {
      }
  }
  
@@ -91,7 +93,7 @@ index 97bb464..4366cbb 100644
 +
 +    return (hold_tap->timestamp - last_tapped.timestamp) < window_ms;
 +}
-
++
 +static bool should_resolve_quick_tap(struct active_hold_tap *hold_tap) {
 +#if IS_ENABLED(CONFIG_ZMK_BEHAVIOR_HOLD_TAP_SAME_KEY_HOLD)
 +    if (is_same_key_recent_tap(hold_tap)) {

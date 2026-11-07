@@ -90,7 +90,7 @@ diff --git a/proto/zmk/sosho.proto b/proto/zmk/sosho.proto
 new file mode 100644
 --- /dev/null
 +++ b/proto/zmk/sosho.proto
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,30 @@
 +syntax = "proto3";
 +package zmk.sosho;
 +

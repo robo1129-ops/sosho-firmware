@@ -4,9 +4,9 @@ This update is the final firmware to leave on the device after the hardware test
 
 Right Central / trackball build
 - File: sosho-right-trackball.uf2
-- SHA-256: 454515290895D21A39BE4635014658F9567C014A4DE51B6CA736B64E6BC6244A
-- UF2 size: 587,776 bytes
-- Flash: 36.39%
+- SHA-256: 6E8F22672B17BABC3EF4C9CBBB8309EBDA72D6461ACF1AAAE41E150BC9711824
+- UF2 size: 590,848 bytes
+- Flash: 36.60%
 - RAM: 35.66%
 
 Included fixes
