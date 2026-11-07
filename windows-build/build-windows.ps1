@@ -9,14 +9,22 @@ $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $pythonCommand = Get-Command python -ErrorAction Stop
 $pythonHome = (& $pythonCommand.Source -c "import sys; print(sys.prefix)").Trim()
-$pythonScripts = Join-Path $pythonHome 'Scripts'
+$pythonUserBase = (& $pythonCommand.Source -c "import site; print(site.getuserbase())").Trim()
+$pythonVersion = (& $pythonCommand.Source -c "import sys; print(f'Python{sys.version_info.major}{sys.version_info.minor}')").Trim()
+$pythonScriptPaths = @(
+  (Join-Path $pythonHome 'Scripts'),
+  (Join-Path $pythonUserBase 'Scripts'),
+  (Join-Path (Join-Path $pythonUserBase $pythonVersion) 'Scripts')
+) | Where-Object { Test-Path $_ }
+$pythonScriptPaths += Get-ChildItem (Join-Path $pythonUserBase '*\Scripts') -Directory -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+$pythonScriptPaths = $pythonScriptPaths | Select-Object -Unique
 $toolchainCandidates = @(
   'C:\Program Files (x86)\Arm GNU Toolchain arm-none-eabi\12.2 mpacbti-rel1\bin'
 )
 $toolchainCandidates += Get-ChildItem 'C:\Program Files*\Arm GNU Toolchain arm-none-eabi\*\bin' -Directory -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
 $armToolchain = $toolchainCandidates | Where-Object { Test-Path (Join-Path $_ 'arm-none-eabi-gcc.exe') } | Select-Object -First 1
 if (-not $armToolchain) { throw 'Arm GNU Toolchain arm-none-eabi-gcc.exe was not found. Install the official toolchain.' }
-$env:Path = "$pythonScripts;$armToolchain;$env:Path"
+$env:Path = (($pythonScriptPaths + $armToolchain + $env:Path) -join ';')
 $env:ZEPHYR_TOOLCHAIN_VARIANT = 'gnuarmemb'
 $env:GNUARMEMB_TOOLCHAIN_PATH = Split-Path $armToolchain
 
