@@ -186,3 +186,14 @@ Webの「左側ブートローダー」をキーに割り当てると、右Centr
 
 今回の右Central用ローカルビルドはフラッシュ36.60%、RAM35.66%、UF2 590,848 bytes、SHA-256 `6E8F22672B17BABC3EF4C9CBBB8309EBDA72D6461ACF1AAAE41E150BC9711824` です。センサー共通の固定起動待ちも1000msから40msへ短縮しています。配布ZIPにも同じ最新版を収録します。実機書き込み後は、ブートローダードライブが消えて通常USBへ戻ることを確認し、最終状態をこの修正版にします。
 
+## 2026-11-07 Bluetooth latency correction
+
+The left split Peripheral link is now explicitly configured for low latency in
+all three module variants: connection interval 6–12 (7.5–15 ms), slave
+latency 0, and supervision timeout 400 (4 s). This removes the older
+10–20 interval / latency 10 override that could add roughly 100–200 ms of
+input delay to keys, encoder events, and pointing reports traveling from the
+left half. `CONFIG_BT_CTLR_PHY_2M=n` remains enabled because ZMK documents it
+as a useful Windows compatibility setting. Both halves should use firmware
+from the same release when applying this correction.
+

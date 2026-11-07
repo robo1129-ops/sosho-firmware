@@ -1,5 +1,8 @@
 param(
-  [ValidateSet('sosho_R_trackball','sosho_R_trackpad','sosho_R_none')]
+  [ValidateSet(
+    'sosho_L_trackball','sosho_L_trackpad','sosho_L_none',
+    'sosho_R_trackball','sosho_R_trackpad','sosho_R_none'
+  )]
   [string]$Shield = 'sosho_R_trackball',
   [switch]$Clean,
   [switch]$NoUpdate

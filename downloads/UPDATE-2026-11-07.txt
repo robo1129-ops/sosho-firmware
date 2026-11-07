@@ -10,6 +10,10 @@ Right Central / trackball build
 - RAM: 35.66%
 
 Included fixes
+- Split Bluetooth latency correction: all left Peripheral variants now use a
+  6–12 interval, slave latency 0, and a 400-unit supervision timeout. This
+  removes the old 10–20 / latency 10 override that could add approximately
+  100–200 ms to left-half input events.
 - The common sensor boot wait and PMW3610 power-up wait are both 40 ms instead
   of the previous unconditional 1000 ms delay. This reduces the apparent
   wake-up pause for the trackball and trackpad. Deep ZMK sleep can still

@@ -32,6 +32,13 @@
 
 この版は全6構成をローカルビルド済みです。右トラックボール版は右側へ書き込み後、XIAO-BOOTの切断と通常USB（キーボード・マウス・COM11）への復帰まで確認しています。書き込み前に、現在使っているUF2を保存してください。
 
+## Bluetooth latency correction
+
+The left Peripheral firmware in the latest local ZIP uses a 6–12 connection
+interval with slave latency 0. This replaces the older 10–20 interval and
+latency 10 override, which could make left-half key and pointing input feel
+delayed. Update both halves from the same release before judging latency.
+
 ## 2026-11-05 ホールドレイヤー修正
 
 ホールドによるレイヤー移動が一時的に途切れたように見える問題を修正しました。左右分割の送信元を含めて同一キーを判定し、直前にタップしたレイヤー移動キーを次の長押しで誤ってタップ確定しないようにしています。レイヤータップは押下直後からホールド側を有効化し、タップだった場合だけ解除してからタップを送るため、レイヤー保持時の判定待ちが入力停止のように見える状態を避けます。右Central用の修正版は `sosho-right-trackball.uf2` です。
