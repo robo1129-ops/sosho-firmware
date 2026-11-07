@@ -124,6 +124,18 @@ OSとブラウザーの機能です。今回の拡張は「HID接続中は広告
 ソース差分は `patches/zmk-direct-web-ble.patch`、ローカル適用は
 `windows-build/build-windows.ps1`、GitHub Actions適用は `.github/workflows/build.yml` にあります。
 
+### 2026-11-07 実機検証
+
+右Centralの `sosho_R_trackball` UF2（直接Web BLE拡張入り）をXIAOブートローダーへ書き込み、
+ブートローダードライブの消失後にWindowsで通常USBの `COM11` が再認識されることを確認しました。
+ビルド設定とUF2生成、USB復帰は成功しています。一方、WindowsのBluetoothでHID接続を維持したまま
+ChromeのWeb Bluetooth Device Pickerを開いた実機検証では、SO-SHOが選択一覧に現れず
+`NotFoundError` になりました。したがって、この拡張はZMK側の広告停止条件を取り除く実装として
+有効ですが、Windows ChromeのWeb BluetoothがOSの既存HID接続を一覧・GATT接続へ渡さない制約までを
+ファームウェア単体で解除するものではありません。WindowsでBLE編集を確実に行う場合は、既存の
+Windows BLEブリッジ（WinRT GATTをローカルで使う方式）、Windows版ネイティブZMK Studio、または
+右CentralのUSB/COM接続が必要です。成功していない直接BLEを成功扱いにはしません。
+
 右Central側に公式のStudio USB UART transport、`CONFIG_ZMK_STUDIO=y`、Studio unlock bindingを構成する。USBは右CentralのCDC-ACMを使い、左Peripheral側は左右通信専用でPCのStudio終端ではない。BLE transportを有効にした右Centralでは、Webエディターが公式のZMK Studio GATTサービスを使い、USBと同じRPCを送受信する。USB／BLEのどちらでも保存結果を実機から再読み取りして一致確認する。
 
 COMポートはUSB CDC/ACMのStudio UART transportであり、BLEをCOMポートとして公開する設定にはならない。Webエディターは右CentralのUSB/COMへ接続し、左Peripheralを編集対象として扱わない。右Central以外を接続した場合は保存を実行せず、対象外であることを表示する。
