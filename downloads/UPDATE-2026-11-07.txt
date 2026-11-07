@@ -4,14 +4,16 @@ This update is the final firmware to leave on the device after the hardware test
 
 Right Central / trackball build
 - File: sosho-right-trackball.uf2
-- SHA-256: 63BE1FA82BADE9EA9EA3EF9CC575FAD019BBB9C827BBFD8BBF4D6C36F55F230B
+- SHA-256: 454515290895D21A39BE4635014658F9567C014A4DE51B6CA736B64E6BC6244A
 - UF2 size: 587,776 bytes
 - Flash: 36.39%
 - RAM: 35.66%
 
 Included fixes
-- PMW3610 power-up wait reduced from 1000 ms to 40 ms to reduce the apparent
-  wake-up pause. Deep ZMK sleep can still require Bluetooth reconnection time.
+- The common sensor boot wait and PMW3610 power-up wait are both 40 ms instead
+  of the previous unconditional 1000 ms delay. This reduces the apparent
+  wake-up pause for the trackball and trackpad. Deep ZMK sleep can still
+  require Bluetooth reconnection time.
 - Half/full-width key is HID LANG5 (usage 0x94) in firmware and Web RPC.
 - Tap a key, release it, then hold the same key: the tap binding is held.
   This also applies when the hold binding is a layer switch. A first press-and-
