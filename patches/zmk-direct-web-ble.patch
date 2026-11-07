@@ -42,7 +42,7 @@ diff --git a/app/src/studio/gatt_rpc_transport.c b/app/src/studio/gatt_rpc_trans
 index dff1825..c7b3a4d 100644
 --- a/app/src/studio/gatt_rpc_transport.c
 +++ b/app/src/studio/gatt_rpc_transport.c
-@@ -24,10 +24,50 @@
+@@ -24,10 +24,69 @@
  LOG_MODULE_DECLARE(zmk_studio, CONFIG_ZMK_STUDIO_LOG_LEVEL);
  
  static bool handling_rx = false;
@@ -52,6 +52,7 @@ index dff1825..c7b3a4d 100644
 + * the connection that actually wrote the RPC request and reply on it.
 + */
 +static struct bt_conn *studio_conn;
++static K_MUTEX_DEFINE(studio_conn_lock);
  
  static K_SEM_DEFINE(indicate_sem, 1, 1);
  static atomic_t notify_size;
@@ -59,9 +60,16 @@ index dff1825..c7b3a4d 100644
 +static void studio_conn_disconnected(struct bt_conn *conn, uint8_t reason) {
 +    ARG_UNUSED(reason);
 +
++    struct bt_conn *released = NULL;
++    k_mutex_lock(&studio_conn_lock, K_FOREVER);
 +    if (studio_conn == conn) {
-+        bt_conn_unref(studio_conn);
++        released = studio_conn;
 +        studio_conn = NULL;
++    }
++    k_mutex_unlock(&studio_conn_lock);
++
++    if (released) {
++        bt_conn_unref(released);
 +    }
 +}
 +
@@ -70,24 +78,35 @@ index dff1825..c7b3a4d 100644
 +};
 +
 +static void remember_studio_conn(struct bt_conn *conn) {
-+    if (!IS_ENABLED(CONFIG_ZMK_STUDIO_TRANSPORT_BLE_DIRECT_WEB) || !conn ||
-+        studio_conn == conn) {
++    if (!IS_ENABLED(CONFIG_ZMK_STUDIO_TRANSPORT_BLE_DIRECT_WEB) || !conn) {
 +        return;
 +    }
 +
-+    if (studio_conn) {
-+        bt_conn_unref(studio_conn);
++    struct bt_conn *released = NULL;
++    k_mutex_lock(&studio_conn_lock, K_FOREVER);
++    if (studio_conn != conn) {
++        released = studio_conn;
++        studio_conn = bt_conn_ref(conn);
 +    }
++    k_mutex_unlock(&studio_conn_lock);
 +
-+    studio_conn = bt_conn_ref(conn);
++    if (released) {
++        bt_conn_unref(released);
++    }
 +}
 +
 +static struct bt_conn *get_studio_conn(void) {
-+    if (IS_ENABLED(CONFIG_ZMK_STUDIO_TRANSPORT_BLE_DIRECT_WEB) && studio_conn) {
-+        return bt_conn_ref(studio_conn);
++    struct bt_conn *conn = NULL;
++
++    if (IS_ENABLED(CONFIG_ZMK_STUDIO_TRANSPORT_BLE_DIRECT_WEB)) {
++        k_mutex_lock(&studio_conn_lock, K_FOREVER);
++        if (studio_conn) {
++            conn = bt_conn_ref(studio_conn);
++        }
++        k_mutex_unlock(&studio_conn_lock);
 +    }
 +
-+    return zmk_ble_active_profile_conn();
++    return conn ? conn : zmk_ble_active_profile_conn();
 +}
 +
  static void rpc_ccc_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value) {
