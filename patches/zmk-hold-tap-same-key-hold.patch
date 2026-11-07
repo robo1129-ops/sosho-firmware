@@ -1,11 +1,11 @@
 diff --git a/app/Kconfig.behaviors b/app/Kconfig.behaviors
-index da9bcc4..9c79dcf 100644
+index da9bcc4..1f26791 100644
 --- a/app/Kconfig.behaviors
 +++ b/app/Kconfig.behaviors
 @@ -59,6 +59,16 @@ config ZMK_BEHAVIOR_HOLD_TAP_MAX_CAPTURED_EVENTS
      help
        Max number of captured system events while waiting to resolve hold taps
- 
+
 +config ZMK_BEHAVIOR_HOLD_TAP_SAME_KEY_HOLD
 +    bool "Keep the tap binding held after a same-key tap and re-press"
 +    default n
@@ -17,21 +17,13 @@ index da9bcc4..9c79dcf 100644
 +      A hold from an idle state still selects the configured hold binding.
 +
  endif
- 
+
  config ZMK_BEHAVIOR_KEY_TOGGLE
 diff --git a/app/src/behaviors/behavior_hold_tap.c b/app/src/behaviors/behavior_hold_tap.c
-index 97bb464..8e5c44a 100644
+index 97bb464..4366cbb 100644
 --- a/app/src/behaviors/behavior_hold_tap.c
 +++ b/app/src/behaviors/behavior_hold_tap.c
-@@ -17,6 +17,7 @@
- #include <zmk/events/position_state_changed.h>
- #include <zmk/events/keycode_state_changed.h>
- #include <zmk/behavior.h>
-+#include <string.h>
- 
- LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
- 
-@@ -122,22 +123,34 @@ struct captured_event captured_events[ZMK_BHV_HOLD_TAP_MAX_CAPTURED_EVENTS] = {}
+@@ -122,22 +122,34 @@ struct captured_event captured_events[ZMK_BHV_HOLD_TAP_MAX_CAPTURED_EVENTS] = {}
  struct last_tapped {
      int32_t position;
      int64_t timestamp;
@@ -67,7 +59,7 @@ index 97bb464..8e5c44a 100644
  }
  
  static bool is_quick_tap(struct active_hold_tap *hold_tap) {
-@@ -149,6 +162,65 @@ static bool is_quick_tap(struct active_hold_tap *hold_tap) {
+@@ -149,6 +161,41 @@ static bool is_quick_tap(struct active_hold_tap *hold_tap) {
      }
  }
  
@@ -99,28 +91,10 @@ index 97bb464..8e5c44a 100644
 +
 +    return (hold_tap->timestamp - last_tapped.timestamp) < window_ms;
 +}
-+
-+static bool is_momentary_layer_hold(struct active_hold_tap *hold_tap) {
-+    const struct device *hold_behavior =
-+        zmk_behavior_get_binding(hold_tap->config->hold_behavior_dev);
-+
-+    /* The node name is stable across ZMK keymaps, while the generated device
-+     * path may be either "momentary_layer" or "/behaviors/momentary_layer". */
-+    return hold_behavior != NULL && hold_behavior->name != NULL &&
-+           (strcmp(hold_behavior->name, "momentary_layer") == 0 ||
-+            strstr(hold_behavior->name, "/momentary_layer") != NULL);
-+}
-+
+
 +static bool should_resolve_quick_tap(struct active_hold_tap *hold_tap) {
 +#if IS_ENABLED(CONFIG_ZMK_BEHAVIOR_HOLD_TAP_SAME_KEY_HOLD)
 +    if (is_same_key_recent_tap(hold_tap)) {
-+        if (is_momentary_layer_hold(hold_tap)) {
-+            /* A recent tap of an LT key must not turn the next held press
-+             * into another tap: the layer hold has to be allowed to resolve
-+             * through the normal tapping-term timer. */
-+            LOG_DBG("%d recent LT tap suppressed quick-tap resolution", hold_tap->position);
-+            return false;
-+        }
 +        LOG_DBG("%d same-key re-press resolves tap so the tap binding remains held",
 +                hold_tap->position);
 +        return true;
@@ -133,7 +107,7 @@ index 97bb464..8e5c44a 100644
  static int capture_event(struct captured_event *data) {
      for (int i = 0; i < ZMK_BHV_HOLD_TAP_MAX_CAPTURED_EVENTS; i++) {
          if (captured_events[i].tag == ET_NONE) {
-@@ -625,7 +697,7 @@ static int on_hold_tap_binding_pressed(struct zmk_behavior_binding *binding,
+@@ -625,7 +672,7 @@ static int on_hold_tap_binding_pressed(struct zmk_behavior_binding *binding,
      LOG_DBG("%d new undecided hold_tap", event.position);
      undecided_hold_tap = hold_tap;
  
@@ -142,3 +116,18 @@ index 97bb464..8e5c44a 100644
          decide_hold_tap(hold_tap, HT_QUICK_TAP);
      }
  
+@@ -656,7 +703,14 @@ static int on_hold_tap_binding_released(struct zmk_behavior_binding *binding,
+ 
+     decide_hold_tap(hold_tap, HT_KEY_UP);
+     decide_retro_tap(hold_tap);
++    /* The tap binding may have emitted a normal keycode press.  Record this
++     * after releasing it so the keycode listener cannot overwrite the
++     * hold-tap marker before the next physical press is evaluated. */
++    bool was_tap = hold_tap->status == STATUS_TAP;
+     release_binding(hold_tap);
++    if (was_tap) {
++        store_last_hold_tapped(hold_tap);
++    }
+ 
+     if (hold_tap->config->hold_while_undecided && hold_tap->config->hold_while_undecided_linger) {
+         release_hold_binding(hold_tap);

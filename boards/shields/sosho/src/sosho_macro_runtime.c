@@ -8,6 +8,7 @@
 
 #include <zmk/behavior.h>
 #include <zmk/behavior_queue.h>
+#include <dt-bindings/zmk/bt.h>
 
 #include "sosho_macro_runtime.h"
 
@@ -61,8 +62,19 @@
 #define SOSHO_STEP_SIZE 7
 #define SOSHO_WIRE_PAYLOAD_MAX 8
 #define SOSHO_CHUNK_DATA 3
+#define SOSHO_MACRO_MODE_TAP 0
+#define SOSHO_MACRO_MODE_PRESS 1
+#define SOSHO_MACRO_MODE_RELEASE 2
+#define SOSHO_MACRO_MODE_BT_SELECT 3
+#define SOSHO_MACRO_MODE_BT_NEXT 4
+#define SOSHO_MACRO_MODE_BT_PREVIOUS 5
+#define SOSHO_MACRO_MODE_BT_DISCONNECT 6
+#define SOSHO_MACRO_MODE_BT_CLEAR 7
+#define SOSHO_MACRO_MODE_BT_CLEAR_ALL 8
+#define SOSHO_MAX_BT_PROFILE 4
 
 #define SOSHO_KEY_PRESS_BEHAVIOR DEVICE_DT_NAME(DT_INST(0, zmk_behavior_key_press))
+#define SOSHO_BLUETOOTH_BEHAVIOR DEVICE_DT_NAME(DT_INST(0, zmk_behavior_bluetooth))
 
 static uint8_t macro_blob[SOSHO_MAX_MACROS][SOSHO_MAX_PAYLOAD];
 static uint16_t macro_blob_len[SOSHO_MAX_MACROS];
@@ -153,7 +165,16 @@ static bool valid_macro_blob(const uint8_t *data, uint16_t len, uint8_t expected
     for (uint8_t i = 0; i < steps; i++, step += SOSHO_STEP_SIZE) {
         uint8_t mode = step[4];
         uint16_t wait = sys_get_le16(&step[5]);
-        if (mode > 2 || wait > SOSHO_MAX_WAIT_MS) {
+        if (wait > SOSHO_MAX_WAIT_MS || mode > SOSHO_MACRO_MODE_BT_CLEAR_ALL) {
+            return false;
+        }
+        if ((mode == SOSHO_MACRO_MODE_BT_SELECT || mode == SOSHO_MACRO_MODE_BT_DISCONNECT) &&
+            sys_get_le32(step) > SOSHO_MAX_BT_PROFILE) {
+            return false;
+        }
+        if ((mode == SOSHO_MACRO_MODE_BT_NEXT || mode == SOSHO_MACRO_MODE_BT_PREVIOUS ||
+             mode == SOSHO_MACRO_MODE_BT_CLEAR || mode == SOSHO_MACRO_MODE_BT_CLEAR_ALL) &&
+            sys_get_le32(step) != 0) {
             return false;
         }
     }
@@ -234,9 +255,7 @@ int sosho_macro_run(uint8_t id) {
     }
 
     const struct device *key_press = zmk_behavior_get_binding(SOSHO_KEY_PRESS_BEHAVIOR);
-    if (key_press == NULL || !device_is_ready(key_press)) {
-        return -ENODEV;
-    }
+    const struct device *bluetooth = zmk_behavior_get_binding(SOSHO_BLUETOOTH_BEHAVIOR);
 
     const uint8_t *data = macro_blob[id];
     uint8_t steps = data[1];
@@ -258,17 +277,56 @@ int sosho_macro_run(uint8_t id) {
         uint8_t mode = step[4];
         uint16_t wait = sys_get_le16(&step[5]);
 
-        if (mode == 0) {
-            if (zmk_behavior_queue_add(&event, binding, true, wait) < 0 ||
-                zmk_behavior_queue_add(&event, binding, false, 0) < 0) {
-                return -ENOSPC;
+        if (mode == SOSHO_MACRO_MODE_TAP || mode == SOSHO_MACRO_MODE_PRESS ||
+            mode == SOSHO_MACRO_MODE_RELEASE) {
+            if (key_press == NULL || !device_is_ready(key_press)) {
+                return -ENODEV;
             }
-        } else if (mode == 1) {
-            if (zmk_behavior_queue_add(&event, binding, true, wait) < 0) {
+            binding.behavior_dev = SOSHO_KEY_PRESS_BEHAVIOR;
+            if (mode == SOSHO_MACRO_MODE_TAP) {
+                if (zmk_behavior_queue_add(&event, binding, true, wait) < 0 ||
+                    zmk_behavior_queue_add(&event, binding, false, 0) < 0) {
+                    return -ENOSPC;
+                }
+            } else if (mode == SOSHO_MACRO_MODE_PRESS) {
+                if (zmk_behavior_queue_add(&event, binding, true, wait) < 0) {
+                    return -ENOSPC;
+                }
+            } else if (zmk_behavior_queue_add(&event, binding, false, wait) < 0) {
                 return -ENOSPC;
             }
         } else {
-            if (zmk_behavior_queue_add(&event, binding, false, wait) < 0) {
+            if (bluetooth == NULL || !device_is_ready(bluetooth)) {
+                return -ENODEV;
+            }
+            binding.behavior_dev = SOSHO_BLUETOOTH_BEHAVIOR;
+            binding.param1 = 0;
+            binding.param2 = 0;
+            switch (mode) {
+            case SOSHO_MACRO_MODE_BT_SELECT:
+                binding.param1 = BT_SEL_CMD;
+                binding.param2 = sys_get_le32(step);
+                break;
+            case SOSHO_MACRO_MODE_BT_NEXT:
+                binding.param1 = BT_NXT_CMD;
+                break;
+            case SOSHO_MACRO_MODE_BT_PREVIOUS:
+                binding.param1 = BT_PRV_CMD;
+                break;
+            case SOSHO_MACRO_MODE_BT_DISCONNECT:
+                binding.param1 = BT_DISC_CMD;
+                binding.param2 = sys_get_le32(step);
+                break;
+            case SOSHO_MACRO_MODE_BT_CLEAR:
+                binding.param1 = BT_CLR_CMD;
+                break;
+            case SOSHO_MACRO_MODE_BT_CLEAR_ALL:
+                binding.param1 = BT_CLR_ALL_CMD;
+                break;
+            default:
+                return -EINVAL;
+            }
+            if (zmk_behavior_queue_add(&event, binding, true, wait) < 0) {
                 return -ENOSPC;
             }
         }
