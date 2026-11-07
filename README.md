@@ -100,6 +100,30 @@ SO-SHO拡張ファームウェアでは、タップ／ホールドキーを一�
 
 ## Studio / USBの状態
 
+## Windows Chrome向け直接Web BLE拡張
+
+公式ZMKの標準動作では、ペア済みのHIDホストが右Centralへ接続している間は、
+別のStudio用BLE接続を受けるための広告が停止します。SO-SHOの右側Central用3構成には、
+このリポジトリでフォークしたZMKへ `CONFIG_ZMK_STUDIO_TRANSPORT_BLE_DIRECT_WEB=y` を
+追加しています。この拡張は、HID接続を維持したまま接続可能広告を継続し、Webページが
+送信したRPCを書き込んだBLE接続へ応答します。したがって、Web側の既存の
+`acceptAllDevices` と公式ZMK Studio GATT UUIDを使った接続経路をそのまま利用できます。
+
+この拡張は公式ZMKの全デバイスへ適用される変更ではなく、SO-SHO右Centralだけで有効です。
+既存のUSB/COM RPC、通常のHID入力、左Peripheralとの分割通信は維持します。直接Web BLEの
+GATT characteristicと通知設定は、Windows Chromeが追加のSMPペアリングを要求せず接続できる
+よう暗号化必須を外しています。そのため、近くのBLE機器からキーマップを書き換えられる
+セキュリティ上のトレードオフがあります。使用後はWebページを切断し、不要なら標準設定へ
+戻したファームウェアを使ってください。
+
+ファームウェアだけでChromeやWindowsのWeb Bluetooth APIそのものを無効化することはできません。
+ChromeのSecure Context、ユーザー操作によるDevice Picker、WindowsがBLE GATTを公開する条件は
+OSとブラウザーの機能です。今回の拡張は「HID接続中は広告されない」というZMK側の条件を
+取り除くものであり、Windows Chromeがなお一覧に表示しない場合は、OSのBluetooth接続を一度
+切断する、許可済みBLEへ再接続する、またはUSB/ネイティブブリッジを使う必要があります。
+ソース差分は `patches/zmk-direct-web-ble.patch`、ローカル適用は
+`windows-build/build-windows.ps1`、GitHub Actions適用は `.github/workflows/build.yml` にあります。
+
 右Central側に公式のStudio USB UART transport、`CONFIG_ZMK_STUDIO=y`、Studio unlock bindingを構成する。USBは右CentralのCDC-ACMを使い、左Peripheral側は左右通信専用でPCのStudio終端ではない。BLE transportを有効にした右Centralでは、Webエディターが公式のZMK Studio GATTサービスを使い、USBと同じRPCを送受信する。USB／BLEのどちらでも保存結果を実機から再読み取りして一致確認する。
 
 COMポートはUSB CDC/ACMのStudio UART transportであり、BLEをCOMポートとして公開する設定にはならない。Webエディターは右CentralのUSB/COMへ接続し、左Peripheralを編集対象として扱わない。右Central以外を接続した場合は保存を実行せず、対象外であることを表示する。

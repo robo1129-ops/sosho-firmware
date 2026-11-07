@@ -1,0 +1,157 @@
+diff --git a/app/src/ble.c b/app/src/ble.c
+index 51b172b..0496862 100644
+--- a/app/src/ble.c
++++ b/app/src/ble.c
+@@ -182,7 +182,8 @@ int update_advertising(void) {
+ 
+     if (zmk_ble_active_profile_is_open()) {
+         desired_adv = ZMK_ADV_CONN;
+-    } else if (!zmk_ble_active_profile_is_connected()) {
++    } else if (!zmk_ble_active_profile_is_connected() ||
++               IS_ENABLED(CONFIG_ZMK_STUDIO_TRANSPORT_BLE_DIRECT_WEB)) {
+         desired_adv = ZMK_ADV_CONN;
+         // Need to fix directed advertising for privacy centrals. See
+         // https://github.com/zephyrproject-rtos/zephyr/pull/14984 char
+diff --git a/app/src/studio/Kconfig b/app/src/studio/Kconfig
+index 1f4da6d..cf25f8c 100644
+--- a/app/src/studio/Kconfig
++++ b/app/src/studio/Kconfig
+@@ -93,6 +93,21 @@ config ZMK_STUDIO_TRANSPORT_BLE_PREF_LATENCY
+       When the studio UI is connected, a lower latency can be requested in order
+       to make the interactions between keyboard and studio faster.
+ 
++config ZMK_STUDIO_TRANSPORT_BLE_DIRECT_WEB
++    bool "Keep a direct Web Bluetooth endpoint available while HID is connected"
++    default n
++    help
++      Keep connectable advertising active while a paired HID host is connected.
++      This is intended for SO-SHO firmware that is used with a browser on
++      Windows, where the HID connection otherwise makes the keyboard stop
++      advertising.  The Studio GATT characteristic is exposed without an
++      SMP pairing requirement in this mode, so a browser can open a separate
++      Studio connection without replacing the active keyboard profile.
++
++      This is an opt-in interoperability mode.  It does not change the
++      default ZMK behavior and it should only be enabled for a dedicated
++      device/editor pairing workflow.
++
+ endif
+ 
+ endmenu
+diff --git a/app/src/studio/gatt_rpc_transport.c b/app/src/studio/gatt_rpc_transport.c
+index dff1825..c7b3a4d 100644
+--- a/app/src/studio/gatt_rpc_transport.c
++++ b/app/src/studio/gatt_rpc_transport.c
+@@ -24,10 +24,50 @@
+ LOG_MODULE_DECLARE(zmk_studio, CONFIG_ZMK_STUDIO_LOG_LEVEL);
+ 
+ static bool handling_rx = false;
++/*
++ * The upstream transport sends indications to the active HID profile.  In
++ * direct-Web mode there can be a second, unpaired Studio connection, so keep
++ * the connection that actually wrote the RPC request and reply on it.
++ */
++static struct bt_conn *studio_conn;
+ 
+ static K_SEM_DEFINE(indicate_sem, 1, 1);
+ static atomic_t notify_size;
+ 
++static void studio_conn_disconnected(struct bt_conn *conn, uint8_t reason) {
++    ARG_UNUSED(reason);
++
++    if (studio_conn == conn) {
++        bt_conn_unref(studio_conn);
++        studio_conn = NULL;
++    }
++}
++
++BT_CONN_CB_DEFINE(studio_rpc_conn_callbacks) = {
++    .disconnected = studio_conn_disconnected,
++};
++
++static void remember_studio_conn(struct bt_conn *conn) {
++    if (!IS_ENABLED(CONFIG_ZMK_STUDIO_TRANSPORT_BLE_DIRECT_WEB) || !conn ||
++        studio_conn == conn) {
++        return;
++    }
++
++    if (studio_conn) {
++        bt_conn_unref(studio_conn);
++    }
++
++    studio_conn = bt_conn_ref(conn);
++}
++
++static struct bt_conn *get_studio_conn(void) {
++    if (IS_ENABLED(CONFIG_ZMK_STUDIO_TRANSPORT_BLE_DIRECT_WEB) && studio_conn) {
++        return bt_conn_ref(studio_conn);
++    }
++
++    return zmk_ble_active_profile_conn();
++}
++
+ static void rpc_ccc_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value) {
+     ARG_UNUSED(attr);
+ 
+@@ -36,7 +76,7 @@ static void rpc_ccc_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value)
+     LOG_INF("RPC Notifications %s", notif_enabled ? "enabled" : "disabled");
+ 
+ #if CONFIG_ZMK_STUDIO_TRANSPORT_BLE_PREF_LATENCY < CONFIG_BT_PERIPHERAL_PREF_LATENCY
+-    struct bt_conn *conn = zmk_ble_active_profile_conn();
++    struct bt_conn *conn = get_studio_conn();
+     if (conn) {
+         uint8_t latency = notif_enabled ? CONFIG_ZMK_STUDIO_TRANSPORT_BLE_PREF_LATENCY
+                                         : CONFIG_BT_PERIPHERAL_PREF_LATENCY;
+@@ -63,10 +103,16 @@ static ssize_t read_rpc_resp(struct bt_conn *conn, const struct bt_gatt_attr *at
+ 
+ static ssize_t write_rpc_req(struct bt_conn *conn, const struct bt_gatt_attr *attr, const void *buf,
+                              uint16_t len, uint16_t offset, uint8_t flags) {
++    ARG_UNUSED(attr);
++    ARG_UNUSED(offset);
++    ARG_UNUSED(flags);
++
+     if (!handling_rx) {
+         return len;
+     }
+ 
++    remember_studio_conn(conn);
++
+     uint32_t copied = 0;
+     struct ring_buf *rpc_buf = zmk_rpc_get_rx_buf();
+     while (copied < len) {
+@@ -90,9 +136,14 @@ BT_GATT_SERVICE_DEFINE(
+     rpc_interface, BT_GATT_PRIMARY_SERVICE(BT_UUID_DECLARE_128(ZMK_STUDIO_BT_SERVICE_UUID)),
+     BT_GATT_CHARACTERISTIC(BT_UUID_DECLARE_128(ZMK_STUDIO_BT_RPC_CHRC_UUID),
+                            BT_GATT_CHRC_WRITE | BT_GATT_CHRC_READ | BT_GATT_CHRC_INDICATE,
+-                           BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT, read_rpc_resp,
+-                           write_rpc_req, NULL),
+-    BT_GATT_CCC(rpc_ccc_cfg_changed, BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT));
++                           IS_ENABLED(CONFIG_ZMK_STUDIO_TRANSPORT_BLE_DIRECT_WEB)
++                               ? (BT_GATT_PERM_READ | BT_GATT_PERM_WRITE)
++                               : (BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT),
++                           read_rpc_resp, write_rpc_req, NULL),
++    BT_GATT_CCC(rpc_ccc_cfg_changed,
++                IS_ENABLED(CONFIG_ZMK_STUDIO_TRANSPORT_BLE_DIRECT_WEB)
++                    ? (BT_GATT_PERM_READ | BT_GATT_PERM_WRITE)
++                    : (BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT)));
+ 
+ static uint16_t get_notify_size_for_conn(struct bt_conn *conn) {
+     uint16_t notify_size = 23; // Default MTU size unless negotiated higher
+@@ -105,7 +156,7 @@ static uint16_t get_notify_size_for_conn(struct bt_conn *conn) {
+ }
+ 
+ static void refresh_notify_size(void) {
+-    struct bt_conn *conn = zmk_ble_active_profile_conn();
++    struct bt_conn *conn = get_studio_conn();
+ 
+     uint16_t ns = get_notify_size_for_conn(conn);
+     if (conn) {
+@@ -137,7 +188,7 @@ static struct bt_gatt_indicate_params rpc_indicate_params = {
+ };
+ 
+ static void notif_rpc_tx_cb(struct k_work *work) {
+-    struct bt_conn *conn = zmk_ble_active_profile_conn();
++    struct bt_conn *conn = get_studio_conn();
+     struct ring_buf *tx_buf = zmk_rpc_get_tx_buf();
+ 
+     if (!conn) {

@@ -68,6 +68,7 @@ try {
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-core-runtime.patch')
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-hold-tap-same-key-hold.patch')
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-studio-usb-uart.patch')
+    Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-direct-web-ble.patch')
   }
   $pmw = Join-Path $root 'modules\zmk-pmw3610-driver'
   if (Test-Path $pmw) {
