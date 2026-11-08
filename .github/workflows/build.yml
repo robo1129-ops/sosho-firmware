@@ -123,6 +123,7 @@ jobs:
           git -C zmk clean -fdx
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-core-runtime.patch"
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-hold-tap-same-key-hold.patch"
+          git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-endpoint-auto-recover.patch"
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-studio-usb-uart.patch"
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-direct-web-ble.patch"
           git -C modules/zmk-pmw3610-driver apply --reverse --check "${GITHUB_WORKSPACE}/patches/pmw3610-battery-report-rate.patch" 2>/dev/null || git -C modules/zmk-pmw3610-driver apply "${GITHUB_WORKSPACE}/patches/pmw3610-battery-report-rate.patch"

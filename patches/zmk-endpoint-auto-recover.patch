@@ -1,0 +1,61 @@
+diff --git a/app/src/endpoints.c b/app/src/endpoints.c
+index 17cdc5d..ba25b0e 100644
+--- a/app/src/endpoints.c
++++ b/app/src/endpoints.c
+@@ -51,6 +51,11 @@ static struct zmk_endpoint_instance current_instance = {};
+ // Transport to use if multiple endpoints are ready
+ static enum zmk_transport preferred_transport = DEFAULT_TRANSPORT;
+ 
++// A previous firmware can persist ZMK_TRANSPORT_NONE after an output toggle.
++// Keep an explicit OUT_NONE selection, but recover a stale boot-time NONE value
++// to a real USB/BLE endpoint when one becomes ready.
++static bool preferred_transport_none_by_user;
++
+ static void update_current_endpoint(void);
+ 
+ #if IS_ENABLED(CONFIG_SETTINGS)
+@@ -127,6 +132,8 @@ int zmk_endpoint_instance_to_index(struct zmk_endpoint_instance endpoint) {
+ int zmk_endpoint_set_preferred_transport(enum zmk_transport transport) {
+     LOG_DBG("Selected endpoint transport %d", transport);
+ 
++    preferred_transport_none_by_user = (transport == ZMK_TRANSPORT_NONE);
++
+     if (preferred_transport == transport) {
+         return 0;
+     }
+@@ -343,6 +350,7 @@ static int endpoint_settings_load_preferred_v1(size_t len, settings_read_cb read
+     }
+ 
+     preferred_transport = upgrade_transport_v1(value);
++    preferred_transport_none_by_user = false;
+ 
+     int err = settings_delete(SETTING_PREFERRED_TRANSPORT_V1);
+     if (err != 0) {
+@@ -377,6 +385,11 @@ static int endpoint_settings_load_preferred_v2(size_t len, settings_read_cb read
+         return len_read;
+     }
+ 
++    // Settings are loaded at boot, so a persisted NONE is not treated as an
++    // explicit key action. It may recover when USB or BLE becomes available.
++    // A later OUT_NONE key action sets the flag in the public setter above.
++    preferred_transport_none_by_user = false;
++
+     return 0;
+ }
+ 
+@@ -424,5 +437,15 @@ static bool is_ble_ready(void) {
+ static enum zmk_transport get_selected_transport(void) {
+     switch (preferred_transport) {
+     case ZMK_TRANSPORT_NONE:
++        if (!preferred_transport_none_by_user) {
++            if (is_usb_ready()) {
++                LOG_INF("Recovering stale NONE endpoint to USB");
++                return ZMK_TRANSPORT_USB;
++            }
++            if (is_ble_ready()) {
++                LOG_INF("Recovering stale NONE endpoint to BLE");
++                return ZMK_TRANSPORT_BLE;
++            }
++        }
+         LOG_DBG("No endpoint transport selected");
+         return ZMK_TRANSPORT_NONE;
