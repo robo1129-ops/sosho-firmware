@@ -70,6 +70,7 @@ try {
     & git -C $zmk clean -fdx
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-core-runtime.patch')
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-hold-tap-same-key-hold.patch')
+    Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-hold-tap-physical-repress.patch')
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-endpoint-auto-recover.patch')
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-studio-usb-uart.patch')
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-direct-web-ble.patch')

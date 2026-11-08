@@ -1,0 +1,99 @@
+diff --git a/app/src/behaviors/behavior_hold_tap.c b/app/src/behaviors/behavior_hold_tap.c
+index 4366cbb..ef54ce8 100644
+--- a/app/src/behaviors/behavior_hold_tap.c
++++ b/app/src/behaviors/behavior_hold_tap.c
+@@ -134,6 +134,27 @@ struct last_tapped last_tapped = {
+     .timestamp = INT32_MIN,
+ };
+ 
++/*
++ * Keep a marker that is written only after the physical hold-tap switch has
++ * completed a tap and has been released. The upstream quick-tap marker is
++ * also updated by generated keycode events, so it cannot safely distinguish
++ * a physical release from an emitted keycode.
++ */
++struct same_key_tap_marker {
++    int32_t position;
++    int64_t release_timestamp;
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
++    uint8_t source;
++#endif
++    bool valid;
++};
++
++static struct same_key_tap_marker same_key_tap = {
++    .position = ZMK_BHV_HOLD_TAP_POSITION_NOT_USED,
++    .release_timestamp = INT32_MIN,
++    .valid = false,
++};
++
+ static void store_last_tapped(int64_t timestamp) {
+     if (timestamp > last_tapped.timestamp) {
+         last_tapped.position = INT32_MIN;
+@@ -190,8 +211,44 @@ static bool is_same_key_recent_tap(struct active_hold_tap *hold_tap) {
+     return (hold_tap->timestamp - last_tapped.timestamp) < window_ms;
+ }
+ 
++static void remember_same_key_tap(struct active_hold_tap *hold_tap, int64_t timestamp) {
++    same_key_tap.position = hold_tap->position;
++    same_key_tap.release_timestamp = timestamp;
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
++    same_key_tap.source = hold_tap->source;
++#endif
++    same_key_tap.valid = true;
++}
++
++static bool consume_same_key_tap(struct active_hold_tap *hold_tap) {
++    if (!same_key_tap.valid || same_key_tap.position != hold_tap->position ||
++        hold_tap->timestamp < same_key_tap.release_timestamp) {
++        return false;
++    }
++
++#if IS_ENABLED(CONFIG_ZMK_SPLIT)
++    if (same_key_tap.source != hold_tap->source) {
++        return false;
++    }
++#endif
++
++    int64_t window_ms = hold_tap->config->tapping_term_ms;
++    if (hold_tap->config->quick_tap_ms > window_ms) {
++        window_ms = hold_tap->config->quick_tap_ms;
++    }
++
++    bool matches = (hold_tap->timestamp - same_key_tap.release_timestamp) < window_ms;
++    same_key_tap.valid = false;
++    return matches;
++}
++
+ static bool should_resolve_quick_tap(struct active_hold_tap *hold_tap) {
+ #if IS_ENABLED(CONFIG_ZMK_BEHAVIOR_HOLD_TAP_SAME_KEY_HOLD)
++    if (consume_same_key_tap(hold_tap)) {
++        LOG_DBG("%d physical same-key re-press keeps the tap binding held", hold_tap->position);
++        return true;
++    }
++
+     if (is_same_key_recent_tap(hold_tap)) {
+         LOG_DBG("%d same-key re-press resolves tap so the tap binding remains held",
+                 hold_tap->position);
+@@ -716,6 +773,7 @@ static int on_hold_tap_binding_released(struct zmk_behavior_binding *binding,
+     release_binding(hold_tap);
+     if (was_tap) {
+         store_last_hold_tapped(hold_tap);
++        remember_same_key_tap(hold_tap, event.timestamp);
+     }
+ 
+     if (hold_tap->config->hold_while_undecided && hold_tap->config->hold_while_undecided_linger) {
+@@ -786,6 +844,13 @@ static const struct behavior_driver_api behavior_hold_tap_driver_api = {
+ static int position_state_changed_listener(const zmk_event_t *eh) {
+     struct zmk_position_state_changed *ev = as_zmk_position_state_changed(eh);
+ 
++#if IS_ENABLED(CONFIG_ZMK_BEHAVIOR_HOLD_TAP_SAME_KEY_HOLD)
++    /* A different physical key breaks the tap-release-repress sequence. */
++    if (ev->state && same_key_tap.valid && ev->position != same_key_tap.position) {
++        same_key_tap.valid = false;
++    }
++#endif
++
+     update_hold_status_for_retro_tap(ev->position);
+ 
+     if (undecided_hold_tap == NULL) {
