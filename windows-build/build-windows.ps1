@@ -5,7 +5,9 @@ param(
   )]
   [string]$Shield = 'sosho_R_trackball',
   [switch]$Clean,
-  [switch]$NoUpdate
+  [switch]$NoUpdate,
+  [ValidateSet('off', '5m', '15m', '30m', '60m')]
+  [string]$SleepMode = 'off'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -94,6 +96,12 @@ try {
     (Join-Path $root 'modules\zmk-rgbled-widget'),
     (Join-Path $root 'modules\zmk_encoder')
   ) -join ';'
+  $sleepArgs = if ($SleepMode -eq 'off') {
+    @('-DCONFIG_ZMK_SLEEP=n', '-DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0')
+  } else {
+    $sleepMinutes = @{ '5m' = 5; '15m' = 15; '30m' = 30; '60m' = 60 }[$SleepMode]
+    @('-DCONFIG_ZMK_SLEEP=y', ("-DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT={0}" -f ($sleepMinutes * 60 * 1000)))
+  }
   $cmakeArgs = @(
     "-DZephyr_DIR=$(Join-Path $root 'zephyr\share\zephyr-package\cmake')",
     "-DBOARD_ROOT=$root",
@@ -102,10 +110,8 @@ try {
     "-DZMK_EXTRA_MODULES=$extraModules",
     "-DSHIELD=$Shield",
     '-DCONFIG_ZMK_STUDIO=y',
-    '-DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y',
-    '-DCONFIG_ZMK_SLEEP=y',
-    '-DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000'
-  )
+    '-DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y'
+  ) + $sleepArgs
   $westBuildArgs = @(
     'build', '-s', (Join-Path $root 'zmk\app'), '-d', $buildDir,
     '-b', 'xiao_ble/nrf52840/zmk', '-S', 'studio-rpc-usb-uart', '--'

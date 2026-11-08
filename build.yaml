@@ -1,36 +1,38 @@
 include:
   # Sleep is runtime-configurable through the SO-SHO RPC. Keep one firmware
   # per physical module profile instead of duplicating the matrix per timeout.
-  # The build default is 30 minutes until the Web editor changes it.
+  # The published default is sleep-off so pointing input responds immediately
+  # after idle. Sleep-enabled variants remain available through the local
+  # Windows build script's -SleepMode option.
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_R_trackball
     snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
     artifact-name: runtime_sosho_R_trackball
 
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_L_trackpad
-    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000
+    cmake-args: -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
     artifact-name: runtime_sosho_L_trackpad
 
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_R_trackpad
     snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
     artifact-name: runtime_sosho_R_trackpad
 
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_L_trackball
-    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000
+    cmake-args: -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
     artifact-name: runtime_sosho_L_trackball
 
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_R_none
     snippet: studio-rpc-usb-uart
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_TRANSPORT_BLE=y -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
     artifact-name: runtime_sosho_R_none
 
   - board: xiao_ble/nrf52840/zmk
     shield: sosho_L_none
-    cmake-args: -DCONFIG_ZMK_SLEEP=y -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000
+    cmake-args: -DCONFIG_ZMK_SLEEP=n -DCONFIG_ZMK_IDLE_SLEEP_TIMEOUT=0
     artifact-name: runtime_sosho_L_none
