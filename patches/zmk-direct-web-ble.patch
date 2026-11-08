@@ -42,7 +42,7 @@ diff --git a/app/src/studio/gatt_rpc_transport.c b/app/src/studio/gatt_rpc_trans
 index dff1825..c7b3a4d 100644
 --- a/app/src/studio/gatt_rpc_transport.c
 +++ b/app/src/studio/gatt_rpc_transport.c
-@@ -24,10 +24,69 @@
+@@ -24,10 +24,81 @@
  LOG_MODULE_DECLARE(zmk_studio, CONFIG_ZMK_STUDIO_LOG_LEVEL);
  
  static bool handling_rx = false;
@@ -95,6 +95,18 @@ index dff1825..c7b3a4d 100644
 +    }
 +}
 +
++static void clear_studio_conn(void) {
++    struct bt_conn *released = NULL;
++    k_mutex_lock(&studio_conn_lock, K_FOREVER);
++    released = studio_conn;
++    studio_conn = NULL;
++    k_mutex_unlock(&studio_conn_lock);
++
++    if (released) {
++        bt_conn_unref(released);
++    }
++}
++
 +static struct bt_conn *get_studio_conn(void) {
 +    struct bt_conn *conn = NULL;
 +
@@ -112,7 +124,7 @@ index dff1825..c7b3a4d 100644
  static void rpc_ccc_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value) {
      ARG_UNUSED(attr);
  
-@@ -36,7 +76,7 @@ static void rpc_ccc_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value)
+@@ -36,7 +107,7 @@ static void rpc_ccc_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value)
      LOG_INF("RPC Notifications %s", notif_enabled ? "enabled" : "disabled");
  
  #if CONFIG_ZMK_STUDIO_TRANSPORT_BLE_PREF_LATENCY < CONFIG_BT_PERIPHERAL_PREF_LATENCY
@@ -121,7 +133,7 @@ index dff1825..c7b3a4d 100644
      if (conn) {
          uint8_t latency = notif_enabled ? CONFIG_ZMK_STUDIO_TRANSPORT_BLE_PREF_LATENCY
                                          : CONFIG_BT_PERIPHERAL_PREF_LATENCY;
-@@ -63,10 +103,16 @@ static ssize_t read_rpc_resp(struct bt_conn *conn, const struct bt_gatt_attr *at
+@@ -63,10 +134,16 @@ static ssize_t read_rpc_resp(struct bt_conn *conn, const struct bt_gatt_attr *at
  
  static ssize_t write_rpc_req(struct bt_conn *conn, const struct bt_gatt_attr *attr, const void *buf,
                               uint16_t len, uint16_t offset, uint8_t flags) {
@@ -138,7 +150,7 @@ index dff1825..c7b3a4d 100644
      uint32_t copied = 0;
      struct ring_buf *rpc_buf = zmk_rpc_get_rx_buf();
      while (copied < len) {
-@@ -90,9 +136,14 @@ BT_GATT_SERVICE_DEFINE(
+@@ -90,7 +161,12 @@ BT_GATT_SERVICE_DEFINE(
      rpc_interface, BT_GATT_PRIMARY_SERVICE(BT_UUID_DECLARE_128(ZMK_STUDIO_BT_SERVICE_UUID)),
      BT_GATT_CHARACTERISTIC(BT_UUID_DECLARE_128(ZMK_STUDIO_BT_RPC_CHRC_UUID),
                             BT_GATT_CHRC_WRITE | BT_GATT_CHRC_READ | BT_GATT_CHRC_INDICATE,
@@ -154,9 +166,7 @@ index dff1825..c7b3a4d 100644
 +                    ? (BT_GATT_PERM_READ | BT_GATT_PERM_WRITE)
 +                    : (BT_GATT_PERM_READ_ENCRYPT | BT_GATT_PERM_WRITE_ENCRYPT)));
  
- static uint16_t get_notify_size_for_conn(struct bt_conn *conn) {
-     uint16_t notify_size = 23; // Default MTU size unless negotiated higher
-@@ -105,7 +156,7 @@ static uint16_t get_notify_size_for_conn(struct bt_conn *conn) {
+@@ -105,7 +181,7 @@ static uint16_t get_notify_size_for_conn(struct bt_conn *conn) {
  }
  
  static void refresh_notify_size(void) {
@@ -165,7 +175,13 @@ index dff1825..c7b3a4d 100644
  
      uint16_t ns = get_notify_size_for_conn(conn);
      if (conn) {
-@@ -137,7 +188,7 @@ static struct bt_gatt_indicate_params rpc_indicate_params = {
+@@ -124,4 +206,5 @@
+ static int gatt_stop_rx(void) {
+     handling_rx = false;
++    clear_studio_conn();
+     return 0;
+ }
+@@ -137,7 +220,7 @@ static struct bt_gatt_indicate_params rpc_indicate_params = {
  };
  
  static void notif_rpc_tx_cb(struct k_work *work) {
