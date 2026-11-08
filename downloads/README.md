@@ -34,10 +34,14 @@
 
 ## Bluetooth latency correction
 
-The left Peripheral firmware in the latest local ZIP uses a 6–12 connection
-interval with slave latency 0. This replaces the older 10–20 interval and
-latency 10 override, which could make left-half key and pointing input feel
-delayed. Update both halves from the same release before judging latency.
+The left Peripheral firmware keeps the 6–12 connection interval and gives
+split input notifications priority. The right Central firmware explicitly uses
+slave latency 0. The older default latency 30 could make left-half pointing
+input arrive in bursts, so update both halves from the same release before
+judging latency.
+
+The published sleep-off pair is built from the same source and keeps the
+existing keymap, macros, encoders, pointing controls, and Studio transports.
 
 ## 2026-11-05 ホールドレイヤー修正
 

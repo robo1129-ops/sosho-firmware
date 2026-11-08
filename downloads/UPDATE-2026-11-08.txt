@@ -1,11 +1,15 @@
 SO-SHO 更新内容（2026-11-08）
 
-無操作後の最初のトラックボール入力が遅れる原因として、従来のビルドが
-CONFIG_ZMK_SLEEP=y / CONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000（30分）だったことを確認しました。
+左トラックパッドの動きが遅れたり、移動量がまとまって反映されたりする原因として、
+左右分割間のBLE接続パラメータに既定のスレーブレイテンシ30が残っていたことを確認しました。
+中央側の CONFIG_ZMK_SPLIT_BLE_PREF_LATENCY を0に固定し、入力通知の遅延を抑えています。
+左側は CONFIG_ZMK_SPLIT_BLE_PERIPHERAL_PRIORITY=1 として、トラックパッドの相対入力通知を
+低優先度の処理より先に転送する構成にしました。
 
 今回の左右ファームウェアは CONFIG_ZMK_SLEEP=n としてビルドし、スリープ復帰待ちを
-発生させない構成にしています。ビルド時の設定ファイルでも左右とも
-「CONFIG_ZMK_SLEEP is not set」を確認済みです。
+発生させない構成も維持しています。ビルド時の設定ファイルで左右とも
+「CONFIG_ZMK_SLEEP is not set」、右中央側で
+「CONFIG_ZMK_SPLIT_BLE_PREF_LATENCY=0」を確認済みです。
 
 対象ファイル：
 - sosho_R_trackball.uf2（右Central）
@@ -14,6 +18,10 @@ CONFIG_ZMK_SLEEP=y / CONFIG_ZMK_IDLE_SLEEP_TIMEOUT=1800000（30分）だった�
 ローカルビルド結果：
 - 右Central: FLASH 36.58%、RAM 35.60%
 - 左Peripheral: FLASH 26.24%、RAM 19.26%
+
+SHA-256：
+- 右Central: 9CE93400D7AE3D7A04E594610BB2831F04DFAB4005B5F04C89AFF0726278281D
+- 左Peripheral: DFF22FC5CF11D0612A58DE2FCB537A30B4CB9E46D815A47CC970FEA8BF32EBEB
 
 書き込み後は、右側をUSB接続している場合でも左右の電源を入れ直し、左Peripheralが
 右Centralへ再接続したことを確認してください。
