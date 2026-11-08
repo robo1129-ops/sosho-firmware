@@ -150,7 +150,7 @@ Web editorには公式Studio protobuf RPCのフレーム生成・応答解析・
 
 この拡張はSO-SHO用パッチを適用したファームウェア専用で、公式ZMKの未改造バイナリでは利用できない。Web側は拡張RPCの応答がない場合、マクロ／実行時スリープの保存を成功扱いにしない。
 
-PINを要求する特殊なホスト向けの予備として、Layer 3に数字入力を用意しています。通常レイヤーで右側のLayer 3キーを押している間、右手側の数字キーを使い、右下のキーでENTERを送信できます。通常のWindowsペアリングではPIN入力を使わない構成です。
+PINを要求する特殊なホスト向けの予備として、Layer 3に数字入力を用意しています。通常レイヤーで右側のLayer 3キーを押している間、右手側の数字キーを使い、右下のキーでENTERを送信できます。通常のWindowsペアリングではPIN入力を使わない構成です。ブートローダー動作は誤操作防止のため初期キーマップには割り当てず、Webアプリの特殊アクションからのみ選択できます。
 
 Windowsで「接続済みだがキーやポインティング入力が届かない」状態を避けるため、中央側では `CONFIG_BT_GATT_ENFORCE_SUBSCRIPTION=n` を設定しています。また、split中央のBattery Level代理通知・取得を無効にし、左右入力のposition-state GATT探索を優先します。ZMKのsplit関連既知事例では、Battery Level取得を有効にした探索中にPeripheralのposition-state characteristicが見つからず、左右入力が届かなくなる症状が報告されています。
 

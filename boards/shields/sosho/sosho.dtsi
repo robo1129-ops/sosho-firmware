@@ -19,10 +19,9 @@
 };
 
 / {
-    /* The physical bottom-right position is reserved for a right-Central
-     * bootloader action. The right shield changes this transparent base
-     * behavior to zmk,behavior-reset; the left shield intentionally keeps it
-     * transparent so a left module cannot enter bootloader mode here. */
+    /* The right-Central bootloader behavior is kept available to the editor
+     * as a special action.  The factory keymap does not bind it physically,
+     * so a Layer 3 key cannot accidentally reboot into UF2 mode. */
     /omit-if-no-ref/ sosho_bootloader: sosho_bootloader {
         compatible = "zmk,behavior-transparent";
         #binding-cells = <0>;
