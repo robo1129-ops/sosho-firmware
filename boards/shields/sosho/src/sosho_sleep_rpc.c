@@ -5,6 +5,8 @@
 #include <zmk/studio/rpc.h>
 
 #include "sosho_sleep_runtime.h"
+zmk_studio_Response get_encoders(const zmk_studio_Request *req);
+zmk_studio_Response set_encoders(const zmk_studio_Request *req);
 
 #define SO_SHO_RESPONSE(type, ...) ZMK_RPC_RESPONSE(sosho, type, __VA_ARGS__)
 
@@ -36,3 +38,5 @@ zmk_studio_Response set_sleep_timeout_ms(const zmk_studio_Request *req) {
 ZMK_RPC_SUBSYSTEM(sosho)
 ZMK_RPC_SUBSYSTEM_HANDLER(sosho, get_sleep, ZMK_STUDIO_RPC_HANDLER_SECURED);
 ZMK_RPC_SUBSYSTEM_HANDLER(sosho, set_sleep_timeout_ms, ZMK_STUDIO_RPC_HANDLER_SECURED);
+ZMK_RPC_SUBSYSTEM_HANDLER(sosho, get_encoders, ZMK_STUDIO_RPC_HANDLER_SECURED);
+ZMK_RPC_SUBSYSTEM_HANDLER(sosho, set_encoders, ZMK_STUDIO_RPC_HANDLER_SECURED);

@@ -11,6 +11,8 @@ target_sources(app PRIVATE
   "${SOSHO_SOURCE_DIR}/boot_delay_hack.c"
   "${SOSHO_SOURCE_DIR}/sosho_axis_lock.c"
   "${SOSHO_SOURCE_DIR}/sosho_runtime_scale.c"
+  "${SOSHO_SOURCE_DIR}/sosho_encoder_runtime.c"
+  "${SOSHO_SOURCE_DIR}/sosho_behavior_encoder.c"
 )
 
 if (CONFIG_SETTINGS)
@@ -23,6 +25,7 @@ if (NOT CONFIG_ZMK_SPLIT OR CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
     "${SOSHO_SOURCE_DIR}/sosho_macro_runtime.c"
     "${SOSHO_SOURCE_DIR}/sosho_macro_rpc.c"
     "${SOSHO_SOURCE_DIR}/sosho_sleep_rpc.c"
+    "${SOSHO_SOURCE_DIR}/sosho_encoder_rpc.c"
     "${SOSHO_SOURCE_DIR}/sosho_behavior_controls.c"
     "${SOSHO_SOURCE_DIR}/sosho_behavior_macro.c"
   )

@@ -30,6 +30,10 @@
             compatible = "sosho,behavior-runtime-macro";
             #binding-cells = <1>;
         };
+        sosho_encoder: sosho_encoder {
+            compatible = "sosho,behavior-encoder";
+            #sensor-binding-cells = <2>;
+        };
         ec_ms_l: ec_ms_h {
             compatible = "zmk,behavior-encoder-mouse-scroll";
             #sensor-binding-cells = <2>;
@@ -104,7 +108,7 @@ keymap {
         // Layer 0's right thumb MO(3) key exposes the Layer 3 pairing/numeric
         // fallback without changing the normal typing layer.
         //&ec_ms_lとrは、上のビヘイビアで作ったもの。
-        sensor-bindings = <&ec_ms_l SCRL_LEFT SCRL_RIGHT &ec_ms_r SCRL_DOWN SCRL_UP>;
+        sensor-bindings = <&sosho_encoder 0 0 &sosho_encoder 0 0>;
     };
 
     layer_1 {
@@ -114,6 +118,7 @@ keymap {
             &trans    &trans &trans &trans &trans &trans           &kp PG_DN &kp LEFT &kp DOWN &kp RIGHT &trans &trans
             &trans    &trans               &trans &trans           &trans    &trans                      &trans &trans
         >;
+        sensor-bindings = <&sosho_encoder 0 0 &sosho_encoder 0 0>;
     };
 
     layer_2 {
@@ -124,7 +129,7 @@ keymap {
             &trans &trans                  &trans  &trans     &trans  &trans                        &trans     &trans
         >;
         //レイヤー2のときだけ、左手のエンコーダを回すとボリュームの上下ができるようになっています。
-        sensor-bindings = <&inc_dec_kp C_VOL_DN C_VOL_UP &ec_ms_r SCRL_DOWN SCRL_UP>;
+        sensor-bindings = <&sosho_encoder 0 0 &sosho_encoder 0 0>;
 
     };
 
@@ -146,6 +151,7 @@ keymap {
             // endpoint to match the transport used by the client.
             &out OUT_USB &out OUT_BLE               &out OUT_TOG &trans      &trans    &trans                      &trans &trans
         >;
+        sensor-bindings = <&sosho_encoder 0 0 &sosho_encoder 0 0>;
     };
     scroll {
         status = "reserved";

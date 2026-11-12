@@ -1,0 +1,133 @@
+diff --git a/app/CMakeLists.txt b/app/CMakeLists.txt
+index c41153c..7573c07 100644
+--- a/app/CMakeLists.txt
++++ b/app/CMakeLists.txt
+@@ -101,7 +101,7 @@ target_sources_ifdef(CONFIG_ZMK_SPLIT app PRIVATE src/events/split_peripheral_status_changed.c)
+ add_subdirectory_ifdef(CONFIG_ZMK_SPLIT src/split)
+ 
+ target_sources_ifdef(CONFIG_USB_DEVICE_STACK app PRIVATE src/usb.c)
+-target_sources_ifdef(CONFIG_ZMK_USB app PRIVATE src/usb_hid.c)
++target_sources_ifdef(CONFIG_ZMK_USB_HID app PRIVATE src/usb_hid.c)
+ target_sources_ifdef(CONFIG_ZMK_RGB_UNDERGLOW app PRIVATE src/rgb_underglow.c)
+ target_sources_ifdef(CONFIG_ZMK_BACKLIGHT app PRIVATE src/backlight.c)
+ target_sources_ifdef(CONFIG_ZMK_LOW_PRIORITY_WORK_QUEUE app PRIVATE src/workqueue.c)
+diff --git a/app/Kconfig b/app/Kconfig
+index fcfdfcb..e9c112f 100644
+--- a/app/Kconfig
++++ b/app/Kconfig
+@@ -139,11 +139,16 @@ config ZMK_USB
+     depends on (!ZMK_SPLIT || (ZMK_SPLIT && ZMK_SPLIT_ROLE_CENTRAL))
+     select USB
+     select USB_DEVICE_STACK
++
++config ZMK_USB_HID
++    bool "USB HID"
++    depends on ZMK_USB
++    default y
+     select USB_DEVICE_HID
+ 
+ config ZMK_USB_BOOT
+     bool "USB Boot Protocol Support"
+-    depends on ZMK_USB
++    depends on ZMK_USB_HID
+     select USB_HID_BOOT_PROTOCOL
+ 
+ config USB_DEVICE_INITIALIZE_AT_BOOT
+diff --git a/app/include/zmk/endpoints.h b/app/include/zmk/endpoints.h
+index c10e387..fe42261 100644
+--- a/app/include/zmk/endpoints.h
++++ b/app/include/zmk/endpoints.h
+@@ -16,7 +16,7 @@
+ 
+ #define ZMK_ENDPOINT_NONE_COUNT 1
+ 
+-#ifdef CONFIG_ZMK_USB
++#if IS_ENABLED(CONFIG_ZMK_USB_HID)
+ #define ZMK_ENDPOINT_USB_COUNT 1
+ #else
+ #define ZMK_ENDPOINT_USB_COUNT 0
+diff --git a/app/src/endpoints.c b/app/src/endpoints.c
+index 17cdc5d..a9ca26f 100644
+--- a/app/src/endpoints.c
++++ b/app/src/endpoints.c
+@@ -38,7 +38,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+ // Full name of the deprecated setting which stored preferred_transport with an older type.
+ #define SETTING_PREFERRED_TRANSPORT_V1 SETTING_SUBTREE "/" SETTING_PREFERRED_TRANSPORT_V1_KEY
+ 
+-#if IS_ENABLED(CONFIG_ZMK_USB)
++#if IS_ENABLED(CONFIG_ZMK_USB_HID)
+ #define DEFAULT_TRANSPORT ZMK_TRANSPORT_USB
+ #elif IS_ENABLED(CONFIG_ZMK_BLE)
+ #define DEFAULT_TRANSPORT ZMK_TRANSPORT_BLE
+@@ -179,7 +179,7 @@ static int send_keyboard_report(void) {
+         return 0;
+ 
+     case ZMK_TRANSPORT_USB: {
+-#if IS_ENABLED(CONFIG_ZMK_USB)
++#if IS_ENABLED(CONFIG_ZMK_USB_HID)
+         int err = zmk_usb_hid_send_keyboard_report();
+         if (err) {
+             LOG_ERR("FAILED TO SEND OVER USB: %d", err);
+@@ -188,7 +188,7 @@ static int send_keyboard_report(void) {
+ #else
+         LOG_ERR("USB endpoint is not supported");
+         return -ENOTSUP;
+-#endif /* IS_ENABLED(CONFIG_ZMK_USB) */
++#endif /* IS_ENABLED(CONFIG_ZMK_USB_HID) */
+     }
+ 
+     case ZMK_TRANSPORT_BLE: {
+@@ -216,7 +216,7 @@ static int send_consumer_report(void) {
+         return 0;
+ 
+     case ZMK_TRANSPORT_USB: {
+-#if IS_ENABLED(CONFIG_ZMK_USB)
++#if IS_ENABLED(CONFIG_ZMK_USB_HID)
+         int err = zmk_usb_hid_send_consumer_report();
+         if (err) {
+             LOG_ERR("FAILED TO SEND OVER USB: %d", err);
+@@ -225,7 +225,7 @@ static int send_consumer_report(void) {
+ #else
+         LOG_ERR("USB endpoint is not supported");
+         return -ENOTSUP;
+-#endif /* IS_ENABLED(CONFIG_ZMK_USB) */
++#endif /* IS_ENABLED(CONFIG_ZMK_USB_HID) */
+     }
+ 
+     case ZMK_TRANSPORT_BLE: {
+@@ -268,7 +268,7 @@ int zmk_endpoint_send_mouse_report() {
+         return 0;
+ 
+     case ZMK_TRANSPORT_USB: {
+-#if IS_ENABLED(CONFIG_ZMK_USB)
++#if IS_ENABLED(CONFIG_ZMK_USB_HID)
+         int err = zmk_usb_hid_send_mouse_report();
+         if (err) {
+             LOG_ERR("FAILED TO SEND OVER USB: %d", err);
+@@ -277,7 +277,7 @@ int zmk_endpoint_send_mouse_report() {
+ #else
+         LOG_ERR("USB endpoint is not supported");
+         return -ENOTSUP;
+-#endif /* IS_ENABLED(CONFIG_ZMK_USB) */
++#endif /* IS_ENABLED(CONFIG_ZMK_USB_HID) */
+     }
+ 
+     case ZMK_TRANSPORT_BLE: {
+@@ -406,7 +406,7 @@ SETTINGS_STATIC_HANDLER_DEFINE(endpoints, SETTING_SUBTREE, NULL, endpoint_settings_set,
+ #endif /* IS_ENABLED(CONFIG_SETTINGS) */
+ 
+ static bool is_usb_ready(void) {
+-#if IS_ENABLED(CONFIG_ZMK_USB)
++#if IS_ENABLED(CONFIG_ZMK_USB_HID)
+     return zmk_usb_is_hid_ready();
+ #else
+     return false;
+@@ -502,7 +502,7 @@ static int endpoint_listener(const zmk_event_t *eh) {
+ }
+ 
+ ZMK_LISTENER(endpoint_listener, endpoint_listener);
+-#if IS_ENABLED(CONFIG_ZMK_USB)
++#if IS_ENABLED(CONFIG_ZMK_USB_HID)
+ ZMK_SUBSCRIPTION(endpoint_listener, zmk_usb_conn_state_changed);
+ #endif
+ #if IS_ENABLED(CONFIG_ZMK_BLE)

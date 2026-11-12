@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: MIT
+
+description: SO-SHO runtime-configurable rotary encoder behavior
+
+compatible: "sosho,behavior-encoder"
+
+include: base.yaml
+
+properties:
+  "#sensor-binding-cells":
+    type: int
+    required: true
+    const: 2
+
+sensor-binding-cells:
+  - direction
+  - sensor

@@ -90,7 +90,7 @@ diff --git a/proto/zmk/sosho.proto b/proto/zmk/sosho.proto
 new file mode 100644
 --- /dev/null
 +++ b/proto/zmk/sosho.proto
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,48 @@
 +syntax = "proto3";
 +package zmk.sosho;
 +
@@ -98,6 +98,8 @@ new file mode 100644
 +  oneof request_type {
 +    bool get_sleep = 1;
 +    uint32 set_sleep_timeout_ms = 2;
++    bool get_encoders = 3;
++    EncoderSettings set_encoders = 4;
 +  }
 +}
 +
@@ -106,6 +108,8 @@ new file mode 100644
 +    SleepSettings get_sleep = 1;
 +    SleepSettings set_sleep_timeout_ms = 2;
 +    ErrorCode error = 3;
++    EncoderSettings get_encoders = 4;
++    EncoderSettings set_encoders = 5;
 +  }
 +}
 +
@@ -115,9 +119,29 @@ new file mode 100644
 +  bool runtime_control = 3;
 +}
 +
++message EncoderBinding {
++  uint32 layer_id = 1;
++  uint32 sensor = 2;
++  uint32 direction = 3;
++  uint32 behavior_id = 4;
++  uint32 param1 = 5;
++  uint32 param2 = 6;
++}
++
++message EncoderSettings {
++  repeated EncoderBinding bindings = 1;
++  bool runtime_control = 2;
++}
++
 +enum ErrorCode {
 +  ERROR_OK = 0;
 +  ERROR_BAD_ARGUMENT = 1;
 +  ERROR_STORAGE = 2;
 +  ERROR_NOT_SUPPORTED = 3;
 +}
+diff --git a/proto/zmk/sosho.options.in b/proto/zmk/sosho.options.in
+new file mode 100644
+--- /dev/null
++++ b/proto/zmk/sosho.options.in
+@@ -0,0 +1 @@
++zmk.sosho.EncoderSettings.bindings max_count:32
