@@ -1,0 +1,73 @@
+diff --git a/app/src/studio/uart_rpc_transport.c b/app/src/studio/uart_rpc_transport.c
+index 6dcac6d..3f48e5e 100644
+--- a/app/src/studio/uart_rpc_transport.c
++++ b/app/src/studio/uart_rpc_transport.c
+@@ -20,10 +20,21 @@ LOG_MODULE_DECLARE(zmk_studio, CONFIG_ZMK_STUDIO_LOG_LEVEL);
+ 
+ static const struct device *const uart_dev = DEVICE_DT_GET(UART_DEVICE_NODE);
+ 
++/* CDC-ACM polling is selected at the source level for the XIAO USB UART.
++ * Its stack and priority Kconfig entries are hidden when the final Kconfig
++ * still enables the interrupt-driven UART option, so provide the documented
++ * defaults locally for this transport. */
++#ifndef CONFIG_ZMK_STUDIO_TRANSPORT_UART_RX_STACK_SIZE
++#define CONFIG_ZMK_STUDIO_TRANSPORT_UART_RX_STACK_SIZE 512
++#endif
++#ifndef CONFIG_ZMK_STUDIO_TRANSPORT_UART_RX_PRIORITY
++#define CONFIG_ZMK_STUDIO_TRANSPORT_UART_RX_PRIORITY 9
++#endif
++
+ static void tx_notify(struct ring_buf *tx_ring_buf, size_t written, bool msg_done,
+                       void *user_data) {
+     if (msg_done || (ring_buf_size_get(tx_ring_buf) > (ring_buf_capacity_get(tx_ring_buf) / 2))) {
+-#if IS_ENABLED(CONFIG_UART_INTERRUPT_DRIVEN)
++#if IS_ENABLED(CONFIG_UART_INTERRUPT_DRIVEN) && !DT_NODE_HAS_COMPAT(DT_CHOSEN(zmk_studio_rpc_uart), zephyr_cdc_acm_uart)
+         uart_irq_tx_enable(uart_dev);
+ #else
+         struct ring_buf *tx_buf = zmk_rpc_get_tx_buf();
+@@ -40,7 +40,7 @@ static void tx_notify(struct ring_buf *tx_ring_buf, size_t written, bool msg_don
+     }
+ }
+ 
+-#if !IS_ENABLED(CONFIG_UART_INTERRUPT_DRIVEN)
++#if !IS_ENABLED(CONFIG_UART_INTERRUPT_DRIVEN) || DT_NODE_HAS_COMPAT(DT_CHOSEN(zmk_studio_rpc_uart), zephyr_cdc_acm_uart)
+ 
+ static void uart_rx_main(void) {
+     for (;;) {
+@@ -70,7 +70,7 @@ K_THREAD_DEFINE(uart_transport_read_thread, CONFIG_ZMK_STUDIO_TRANSPORT_UART_RX_
+ #endif
+ 
+ static int start_rx() {
+-#if IS_ENABLED(CONFIG_UART_INTERRUPT_DRIVEN)
++#if IS_ENABLED(CONFIG_UART_INTERRUPT_DRIVEN) && !DT_NODE_HAS_COMPAT(DT_CHOSEN(zmk_studio_rpc_uart), zephyr_cdc_acm_uart)
+     uart_irq_rx_enable(uart_dev);
+ #else
+     k_thread_resume(uart_transport_read_thread);
+@@ -79,7 +79,7 @@ static int start_rx() {
+ }
+ 
+ static int stop_rx(void) {
+-#if IS_ENABLED(CONFIG_UART_INTERRUPT_DRIVEN)
++#if IS_ENABLED(CONFIG_UART_INTERRUPT_DRIVEN) && !DT_NODE_HAS_COMPAT(DT_CHOSEN(zmk_studio_rpc_uart), zephyr_cdc_acm_uart)
+     uart_irq_rx_disable(uart_dev);
+ #else
+     k_thread_suspend(uart_transport_read_thread);
+@@ -89,7 +89,7 @@ static int stop_rx(void) {
+ 
+ ZMK_RPC_TRANSPORT(uart, ZMK_TRANSPORT_USB, start_rx, stop_rx, NULL, tx_notify);
+ 
+-#if IS_ENABLED(CONFIG_UART_INTERRUPT_DRIVEN)
++#if IS_ENABLED(CONFIG_UART_INTERRUPT_DRIVEN) && !DT_NODE_HAS_COMPAT(DT_CHOSEN(zmk_studio_rpc_uart), zephyr_cdc_acm_uart)
+ 
+ /*
+  * Read characters from UART until line end is detected. Afterwards push the
+@@ -148,8 +148,8 @@ static int uart_rpc_interface_init(void) {
+         return -ENODEV;
+     }
+ 
+-#if IS_ENABLED(CONFIG_UART_INTERRUPT_DRIVEN)
++#if IS_ENABLED(CONFIG_UART_INTERRUPT_DRIVEN) && !DT_NODE_HAS_COMPAT(DT_CHOSEN(zmk_studio_rpc_uart), zephyr_cdc_acm_uart)
+     /* configure interrupt and callback to receive data */
+     int ret = uart_irq_callback_user_data_set(uart_dev, serial_cb, NULL);
+ 
+     if (ret < 0) {

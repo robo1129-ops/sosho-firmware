@@ -1,0 +1,98 @@
+diff --git a/app/src/studio/rpc.c b/app/src/studio/rpc.c
+--- a/app/src/studio/rpc.c
++++ b/app/src/studio/rpc.c
+@@ -78,8 +78,28 @@
+ static K_MUTEX_DEFINE(rpc_transport_mutex);
+ static struct zmk_rpc_transport *selected_transport;
+ 
++static struct zmk_rpc_transport *transport_for(enum zmk_transport transport) {
++    STRUCT_SECTION_FOREACH(zmk_rpc_transport, candidate) {
++        if (candidate->transport == transport) {
++            return candidate;
++        }
++    }
++
++    return NULL;
++}
++
+ struct ring_buf *zmk_rpc_get_rx_buf(void) { return &rpc_rx_buf; }
+ 
+ void zmk_rpc_rx_notify(void) { k_sem_give(&rpc_rx_sem); }
+ 
++void zmk_rpc_rx_notify_from(enum zmk_transport transport) {
++    k_mutex_lock(&rpc_transport_mutex, K_FOREVER);
++    struct zmk_rpc_transport *source = transport_for(transport);
++    if (source) {
++        selected_transport = source;
++    }
++    k_mutex_unlock(&rpc_transport_mutex);
++    k_sem_give(&rpc_rx_sem);
++}
++
+ static bool rpc_read_cb(pb_istream_t *stream, uint8_t *buf, size_t count) {
+@@ -245,4 +245,15 @@
+ static void refresh_selected_transport(void) {
+     enum zmk_transport transport = zmk_endpoint_get_selected().transport;
+ 
++#if IS_ENABLED(CONFIG_ZMK_STUDIO_TRANSPORT_UART) && IS_ENABLED(CONFIG_ZMK_STUDIO_TRANSPORT_BLE)
++    /* Keep both Studio transports alive. The editor may use USB for RPC while
++     * the keyboard endpoint remains on BLE; replies are routed by the last
++     * transport that delivered a request. */
++    struct zmk_rpc_transport *preferred = transport_for(transport);
++    if (preferred) {
++        selected_transport = preferred;
++    }
++    return;
++#endif
++
+     k_mutex_lock(&rpc_transport_mutex, K_FOREVER);
+@@ -305,7 +334,17 @@
+     if (prev_sub) {
+         prev_sub->handlers_end_index = i - 1;
+     }
+ 
++#if IS_ENABLED(CONFIG_ZMK_STUDIO_TRANSPORT_UART) && IS_ENABLED(CONFIG_ZMK_STUDIO_TRANSPORT_BLE)
++    /* USB and BLE are editor transports, not HID endpoints. Start both so a
++     * USB map-editing session keeps working while Bluetooth is connected. */
++    STRUCT_SECTION_FOREACH(zmk_rpc_transport, transport) {
++        if (transport->rx_start) {
++            transport->rx_start();
++        }
++    }
++#endif
++
+     refresh_selected_transport();
+ 
+     return 0;
+diff --git a/app/include/zmk/studio/rpc.h b/app/include/zmk/studio/rpc.h
+--- a/app/include/zmk/studio/rpc.h
++++ b/app/include/zmk/studio/rpc.h
+@@ -218,5 +218,6 @@
+ struct ring_buf *zmk_rpc_get_tx_buf(void);
+ struct ring_buf *zmk_rpc_get_rx_buf(void);
+ void zmk_rpc_rx_notify(void);
++void zmk_rpc_rx_notify_from(enum zmk_transport transport);
+ 
+ #define ZMK_RPC_TRANSPORT(name, _transport, _rx_start, _rx_stop, _tx_user_data, _tx_notify)        \
+diff --git a/app/src/studio/gatt_rpc_transport.c b/app/src/studio/gatt_rpc_transport.c
+--- a/app/src/studio/gatt_rpc_transport.c
++++ b/app/src/studio/gatt_rpc_transport.c
+@@ -158,7 +158,7 @@
+         ring_buf_put_finish(rpc_buf, claim_len);
+     }
+ 
+-    zmk_rpc_rx_notify();
++    zmk_rpc_rx_notify_from(ZMK_TRANSPORT_BLE);
+ 
+     return len;
+ }
+diff --git a/app/src/studio/uart_rpc_transport.c b/app/src/studio/uart_rpc_transport.c
+--- a/app/src/studio/uart_rpc_transport.c
++++ b/app/src/studio/uart_rpc_transport.c
+@@ -72,4 +72,4 @@
+             ring_buf_put_finish(ring_buf, 1);
+-            zmk_rpc_rx_notify();
++            zmk_rpc_rx_notify_from(ZMK_TRANSPORT_USB);
+         }
+     }
+ }
