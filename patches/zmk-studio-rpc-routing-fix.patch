@@ -1,0 +1,14 @@
+diff --git a/app/src/studio/rpc.c b/app/src/studio/rpc.c
+--- a/app/src/studio/rpc.c
++++ b/app/src/studio/rpc.c
+@@ -221,3 +221,4 @@
+ #endif // !IS_ENABLED(CONFIG_NANOPB_NO_ERRMSG)
+-        return -EINVAL;
++        k_mutex_unlock(&rpc_transport_mutex);
++        return -EINVAL;
+     }
+@@ -272,3 +273,3 @@
+     struct zmk_rpc_transport *preferred = transport_for(transport);
+-    if (preferred) {
++    if (!selected_transport && preferred) {
+         selected_transport = preferred;

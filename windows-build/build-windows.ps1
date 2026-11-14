@@ -76,9 +76,10 @@ try {
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-hold-tap-physical-repress.patch')
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-endpoint-auto-recover.patch')
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-studio-usb-uart.patch')
-    Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-studio-usb-uart-polling.patch')
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-direct-web-ble.patch')
+    Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-studio-usb-uart-polling.patch')
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-studio-rpc-multiplex.patch')
+    Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-studio-rpc-routing-fix.patch')
   }
   $pmw = Join-Path $root 'modules\zmk-pmw3610-driver'
   if (Test-Path $pmw) {
