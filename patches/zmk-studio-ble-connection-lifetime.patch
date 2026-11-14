@@ -1,0 +1,19 @@
+diff --git a/app/src/studio/gatt_rpc_transport.c b/app/src/studio/gatt_rpc_transport.c
+--- a/app/src/studio/gatt_rpc_transport.c
++++ b/app/src/studio/gatt_rpc_transport.c
+@@ -192,5 +192,7 @@
+         notify_size = conn_info.le.data_len->tx_max_len;
+     }
+ 
+-    return notify_size;
++    /* ATT indications carry at most MTU - 3 bytes, not the LL data length. */
++    uint16_t mtu = conn ? bt_gatt_get_mtu(conn) : 23;
++    return MIN(notify_size, mtu > 3 ? mtu - 3 : 20);
+ }
+@@ -241,5 +243,6 @@
+         int ret = k_sem_take(&indicate_sem, K_NO_WAIT);
+         if (ret < 0) {
++            bt_conn_unref(conn);
+             return;
+         }
+ 

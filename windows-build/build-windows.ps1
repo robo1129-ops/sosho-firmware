@@ -80,6 +80,7 @@ try {
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-studio-usb-uart-polling.patch')
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-studio-rpc-multiplex.patch')
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-studio-rpc-routing-fix.patch')
+    Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-studio-ble-connection-lifetime.patch')
   }
   $pmw = Join-Path $root 'modules\zmk-pmw3610-driver'
   if (Test-Path $pmw) {

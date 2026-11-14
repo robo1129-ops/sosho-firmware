@@ -122,11 +122,16 @@ jobs:
           git -C zmk reset --hard HEAD
           git -C zmk clean -fdx
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-core-runtime.patch"
+          git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-usb-rpc-only.patch"
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-hold-tap-same-key-hold.patch"
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-hold-tap-physical-repress.patch"
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-endpoint-auto-recover.patch"
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-studio-usb-uart.patch"
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-direct-web-ble.patch"
+          git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-studio-usb-uart-polling.patch"
+          git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-studio-rpc-multiplex.patch"
+          git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-studio-rpc-routing-fix.patch"
+          git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-studio-ble-connection-lifetime.patch"
           git -C modules/zmk-pmw3610-driver apply --reverse --check "${GITHUB_WORKSPACE}/patches/pmw3610-battery-report-rate.patch" 2>/dev/null || git -C modules/zmk-pmw3610-driver apply "${GITHUB_WORKSPACE}/patches/pmw3610-battery-report-rate.patch"
           studio_messages_dir="${base_dir}/modules/msgs/zmk-studio-messages"
           git -C "${studio_messages_dir}" reset --hard HEAD
