@@ -14,30 +14,32 @@ static zmk_studio_Response encoder_error(zmk_sosho_ErrorCode code) {
     return SO_SHO_RESPONSE(error, code);
 }
 
-static zmk_sosho_EncoderSettings current_encoder_settings(void) {
-    zmk_sosho_EncoderSettings settings = zmk_sosho_EncoderSettings_init_zero;
+static void current_encoder_settings(zmk_sosho_EncoderSettings *settings) {
+    *settings = (zmk_sosho_EncoderSettings)zmk_sosho_EncoderSettings_init_zero;
     struct sosho_encoder_rpc_binding bindings[SOSHO_ENCODER_MAX_BINDINGS];
     size_t count = 0U;
     if (sosho_encoder_get(bindings, ARRAY_SIZE(bindings), &count) < 0) {
-        return settings;
+        return;
     }
 
-    settings.runtime_control = true;
-    settings.bindings_count = count;
+    settings->runtime_control = true;
+    settings->bindings_count = count;
     for (size_t i = 0U; i < count; i++) {
-        settings.bindings[i].layer_id = bindings[i].layer_id;
-        settings.bindings[i].sensor = bindings[i].sensor;
-        settings.bindings[i].direction = bindings[i].direction;
-        settings.bindings[i].behavior_id = bindings[i].behavior_id;
-        settings.bindings[i].param1 = bindings[i].param1;
-        settings.bindings[i].param2 = bindings[i].param2;
+        settings->bindings[i].layer_id = bindings[i].layer_id;
+        settings->bindings[i].sensor = bindings[i].sensor;
+        settings->bindings[i].direction = bindings[i].direction;
+        settings->bindings[i].behavior_id = bindings[i].behavior_id;
+        settings->bindings[i].param1 = bindings[i].param1;
+        settings->bindings[i].param2 = bindings[i].param2;
     }
-    return settings;
 }
 
 zmk_studio_Response get_encoders(const zmk_studio_Request *req) {
     ARG_UNUSED(req);
-    return SO_SHO_RESPONSE(get_encoders, current_encoder_settings());
+    zmk_studio_Response response = SO_SHO_RESPONSE(get_encoders,
+        zmk_sosho_EncoderSettings_init_zero);
+    current_encoder_settings(&response.type.request_response.subsystem.sosho.response_type.get_encoders);
+    return response;
 }
 
 zmk_studio_Response set_encoders(const zmk_studio_Request *req) {
@@ -62,6 +64,9 @@ zmk_studio_Response set_encoders(const zmk_studio_Request *req) {
         return encoder_error(err == -ENOTSUP ? zmk_sosho_ErrorCode_ERROR_NOT_SUPPORTED
                                              : zmk_sosho_ErrorCode_ERROR_BAD_ARGUMENT);
     }
-    return SO_SHO_RESPONSE(set_encoders, current_encoder_settings());
+    zmk_studio_Response response = SO_SHO_RESPONSE(set_encoders,
+        zmk_sosho_EncoderSettings_init_zero);
+    current_encoder_settings(&response.type.request_response.subsystem.sosho.response_type.set_encoders);
+    return response;
 }
 
