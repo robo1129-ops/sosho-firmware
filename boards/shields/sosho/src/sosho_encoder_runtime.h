@@ -8,7 +8,7 @@
 
 #define SOSHO_ENCODER_SENSOR_COUNT 2U
 #define SOSHO_ENCODER_DIRECTION_COUNT 2U
-#define SOSHO_ENCODER_MAX_BINDINGS 32U
+#define SOSHO_ENCODER_MAX_BINDINGS 48U
 
 struct sosho_encoder_rpc_binding {
     uint32_t layer_id;

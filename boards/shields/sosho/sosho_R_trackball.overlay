@@ -22,7 +22,7 @@
     /* Layer 4 is the reserved ZMK Studio scroll layer.  MO(4) keeps it
      * active only while the assigned key is held. */
     scroller {
-        layers = <4>;
+        layers = <10>;
         /* Keep horizontal orientation, reverse vertical scroll direction, and
          * apply the configured 35% scroll amount. */
         input-processors = <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,
@@ -55,7 +55,7 @@
                        <&zip_xy_scaler SOSHO_TRACKBALL_XY_SCALE_NUM SOSHO_TRACKBALL_XY_SCALE_DEN>;
 
     scroller {
-        layers = <4>;
+        layers = <10>;
         input-processors = <&zip_xy_transform INPUT_TRANSFORM_X_INVERT>,
                            <&sosho_axis_lock>,
                            <&zip_xy_to_scroll_mapper>,

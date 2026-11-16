@@ -144,4 +144,4 @@ new file mode 100644
 --- /dev/null
 +++ b/proto/zmk/sosho.options.in
 @@ -0,0 +1 @@
-+zmk.sosho.EncoderSettings.bindings max_count:32
++zmk.sosho.EncoderSettings.bindings max_count:48

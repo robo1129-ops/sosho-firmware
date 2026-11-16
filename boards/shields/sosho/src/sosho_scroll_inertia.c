@@ -151,7 +151,7 @@ static void sosho_scroll_inertia_input_cb(struct input_event *event,
     if (!is_sosho_trackball_device(event->dev) ||
         event->type != INPUT_EV_REL ||
         (event->code != INPUT_REL_X && event->code != INPUT_REL_Y) ||
-        event->value == 0 || !zmk_keymap_layer_active(4)) {
+        event->value == 0 || !zmk_keymap_layer_active(10)) {
         return;
     }
 

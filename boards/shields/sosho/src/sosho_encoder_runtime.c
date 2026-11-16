@@ -60,11 +60,12 @@ static void initialize_defaults(void) {
 
 static int settings_set(const char *name, size_t len_rd, settings_read_cb read_cb, void *cb_arg) {
     initialize_defaults();
-    if (strcmp(name, "encoder_bindings") != 0 || len_rd != sizeof(persisted)) {
+    if (strcmp(name, "encoder_bindings") != 0 || len_rd > sizeof(persisted) ||
+        len_rd % sizeof(persisted[0]) != 0U) {
         return -ENOENT;
     }
 
-    return read_cb(cb_arg, persisted, sizeof(persisted)) < 0 ? -EINVAL : 0;
+    return read_cb(cb_arg, persisted, len_rd) < 0 ? -EINVAL : 0;
 }
 
 SETTINGS_STATIC_HANDLER_DEFINE(sosho_encoder_runtime, "sosho_runtime", NULL, settings_set, NULL,
