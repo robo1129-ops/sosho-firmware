@@ -110,5 +110,7 @@ static const struct behavior_driver_api encoder_api = {
     .sensor_binding_process = encoder_process,
 };
 
-BEHAVIOR_DT_INST_DEFINE(0, NULL, NULL, NULL, NULL, POST_KERNEL,
+static struct sosho_behavior_encoder_data encoder_data;
+
+BEHAVIOR_DT_INST_DEFINE(0, NULL, NULL, &encoder_data, NULL, POST_KERNEL,
                         CONFIG_KERNEL_INIT_PRIORITY_DEFAULT, &encoder_api);
