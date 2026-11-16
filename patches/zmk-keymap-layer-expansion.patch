@@ -1,0 +1,28 @@
+diff --git a/app/src/keymap.c b/app/src/keymap.c
+--- a/app/src/keymap.c
++++ b/app/src/keymap.c
+@@ -936,4 +936,24 @@
+ 
+         memcpy(keymap_layer_orders, settings_layer_orders,
+                MIN(len, ARRAY_SIZE(settings_layer_orders)));
++        /* Extend older stored ordering without discarding any bindings. */
++        if (len < ARRAY_SIZE(settings_layer_orders)) {
++            size_t used = 0;
++            for (size_t index = 0; index < MIN(len, ARRAY_SIZE(settings_layer_orders)); index++) {
++                uint8_t id = settings_layer_orders[index];
++                if (id != ZMK_KEYMAP_LAYER_ID_INVAL && id < ZMK_KEYMAP_LAYERS_LEN) {
++                    keymap_layer_orders[used++] = id;
++                }
++            }
++            for (uint8_t id = 0; id <= 10 && id < ZMK_KEYMAP_LAYERS_LEN; id++) {
++                bool present = false;
++                for (size_t index = 0; index < used; index++) {
++                    present |= keymap_layer_orders[index] == id;
++                }
++                if (!present) keymap_layer_orders[used++] = id;
++            }
++            while (used < ARRAY_SIZE(keymap_layer_orders)) {
++                keymap_layer_orders[used++] = ZMK_KEYMAP_LAYER_ID_INVAL;
++            }
++        }
+     }
