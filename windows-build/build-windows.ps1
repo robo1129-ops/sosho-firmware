@@ -81,6 +81,8 @@ try {
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-studio-rpc-multiplex.patch')
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-studio-rpc-routing-fix.patch')
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-keymap-layer-expansion.patch')
+    Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-keyboard-notify-retry.patch')
+    Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-split-input-stability.patch')
     Apply-PatchIfNeeded $zmk (Join-Path $root 'patches\zmk-studio-ble-connection-lifetime.patch')
   }
   $pmw = Join-Path $root 'modules\zmk-pmw3610-driver'
