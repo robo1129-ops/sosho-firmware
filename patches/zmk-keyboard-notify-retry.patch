@@ -1,8 +1,24 @@
 diff --git a/app/src/hog.c b/app/src/hog.c
-index c7d9b86..d6c3f87 100644
+index c7d9b86..557f660 100644
 --- a/app/src/hog.c
 +++ b/app/src/hog.c
-@@ -322,7 +322,20 @@ void send_keyboard_report_callback(struct k_work *work) {
+@@ -308,11 +308,13 @@ K_MSGQ_DEFINE(zmk_hog_keyboard_msgq, sizeof(struct zmk_hid_keyboard_report_body)
+               CONFIG_ZMK_BLE_KEYBOARD_REPORT_QUEUE_SIZE, 4);
+ 
+ void send_keyboard_report_callback(struct k_work *work) {
+-    struct zmk_hid_keyboard_report_body report;
++    static struct zmk_hid_keyboard_report_body report;
++    static bool pending;
+ 
+-    while (k_msgq_get(&zmk_hog_keyboard_msgq, &report, K_NO_WAIT) == 0) {
++    while (pending || k_msgq_get(&zmk_hog_keyboard_msgq, &report, K_NO_WAIT) == 0) {
+         struct bt_conn *conn = zmk_ble_active_profile_conn();
+         if (conn == NULL) {
++            pending = false;
+             return;
+         }
+ 
+@@ -322,7 +324,27 @@ void send_keyboard_report_callback(struct k_work *work) {
              .len = sizeof(report),
          };
  
@@ -21,10 +37,17 @@ index c7d9b86..d6c3f87 100644
 +            }
 +            k_msleep(10);
 +        } while (k_uptime_get() < deadline);
++        if (err == -ENOMEM || err == -EAGAIN || err == -EPERM) {
++            pending = true;
++            bt_conn_unref(conn);
++            k_work_submit_to_queue(&hog_work_q, work);
++            return;
++        }
++        pending = false;
          if (err == -EPERM) {
              bt_conn_set_security(conn, BT_SECURITY_L2);
          } else if (err) {
-@@ -413,9 +426,13 @@ int zmk_hog_send_consumer_report(struct zmk_hid_consumer_report_body *report) {
+@@ -413,9 +435,13 @@ int zmk_hog_send_consumer_report(struct zmk_hid_consumer_report_body *report) {
  K_MSGQ_DEFINE(zmk_hog_mouse_msgq, sizeof(struct zmk_hid_mouse_report_body),
                CONFIG_ZMK_BLE_MOUSE_REPORT_QUEUE_SIZE, 4);
  
@@ -39,7 +62,7 @@ index c7d9b86..d6c3f87 100644
          struct bt_conn *conn = zmk_ble_active_profile_conn();
          if (conn == NULL) {
              return;
-@@ -436,19 +453,26 @@ void send_mouse_report_callback(struct k_work *work) {
+@@ -436,19 +462,26 @@ void send_mouse_report_callback(struct k_work *work) {
  
          bt_conn_unref(conn);
      }

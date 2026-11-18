@@ -1,12 +1,19 @@
 diff --git a/app/src/split/bluetooth/service.c b/app/src/split/bluetooth/service.c
-index a51e8c3..d25d158 100644
+index a51e8c3..39e905a 100644
 --- a/app/src/split/bluetooth/service.c
 +++ b/app/src/split/bluetooth/service.c
-@@ -218,7 +218,15 @@ void send_position_state_callback(struct k_work *work) {
-     uint8_t state[POS_STATE_LEN];
+@@ -215,10 +215,25 @@ K_MSGQ_DEFINE(position_state_msgq, sizeof(char[POS_STATE_LEN]),
+               CONFIG_ZMK_SPLIT_BLE_PERIPHERAL_POSITION_QUEUE_SIZE, 4);
  
-     while (k_msgq_get(&position_state_msgq, &state, K_NO_WAIT) == 0) {
+ void send_position_state_callback(struct k_work *work) {
+-    uint8_t state[POS_STATE_LEN];
+-
+-    while (k_msgq_get(&position_state_msgq, &state, K_NO_WAIT) == 0) {
 -        int err = bt_gatt_notify(NULL, &split_svc.attrs[1], &state, sizeof(state));
++    static uint8_t state[POS_STATE_LEN];
++    static bool pending;
++
++    while (pending || k_msgq_get(&position_state_msgq, &state, K_NO_WAIT) == 0) {
 +        int err;
 +        int64_t deadline = k_uptime_get() + 1000;
 +        do {
@@ -16,10 +23,16 @@ index a51e8c3..d25d158 100644
 +            }
 +            k_msleep(10);
 +        } while (k_uptime_get() < deadline);
++        if (err == -ENOMEM || err == -EAGAIN) {
++            pending = true;
++            k_work_submit_to_queue(&service_work_q, work);
++            return;
++        }
++        pending = false;
          if (err) {
              LOG_DBG("Error notifying %d", err);
          }
-@@ -320,18 +328,23 @@ struct input_event_notify_item {
+@@ -320,18 +335,23 @@ struct input_event_notify_item {
  K_MSGQ_DEFINE(input_event_msgq, sizeof(struct input_event_notify_item),
                CONFIG_ZMK_INPUT_SPLIT_MSG_QUEUE_SIZE, 4);
  
@@ -45,7 +58,7 @@ index a51e8c3..d25d158 100644
  
  static int zmk_split_bt_report_input(uint8_t reg, uint8_t type, uint16_t code, int32_t value,
                                       bool sync) {
-@@ -364,6 +377,8 @@ static int zmk_split_bt_report_input(uint8_t reg, uint8_t type, uint16_t code, i
+@@ -364,6 +384,8 @@ static int zmk_split_bt_report_input(uint8_t reg, uint8_t type, uint16_t code, i
                      LOG_WRN("Failed to queue input event (%d)", err);
                      return err;
                  }
@@ -54,7 +67,7 @@ index a51e8c3..d25d158 100644
              }
          }
      }
-@@ -472,4 +487,4 @@ static ssize_t split_svc_run_behavior(struct bt_conn *conn, const struct bt_gatt
+@@ -472,4 +494,4 @@ static ssize_t split_svc_run_behavior(struct bt_conn *conn, const struct bt_gatt
      }
  
      return len;
