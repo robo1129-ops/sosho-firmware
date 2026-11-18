@@ -52,20 +52,20 @@
 };
 
 /*
- * Layer-tap keys must activate their hold behavior immediately.  Without
- * this, ZMK keeps the key undecided for tapping-term-ms (200 ms here), which
- * feels like a temporary input/link pause when the user holds a layer key.
- * If the key is released as a tap, ZMK releases the provisional layer before
- * sending the tap binding, so the half/full-width tap remains unchanged.
+ * Allow a deliberate tap without provisionally activating a modifier or layer.
+ * Balanced resolution selects hold when another key completes a chord;
+ * otherwise the longer tapping term permits normal typing and intentional holds.
  */
 &lt {
-    quick-tap-ms = <250>;
-    hold-while-undecided;
+    tapping-term-ms = <280>;
+    quick-tap-ms = <300>;
+    flavor = "balanced";
 };
 
 &mt {
-    quick-tap-ms = <250>;
-    hold-while-undecided;
+    tapping-term-ms = <280>;
+    quick-tap-ms = <300>;
+    flavor = "balanced";
 };
 
 / {

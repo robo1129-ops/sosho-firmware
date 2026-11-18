@@ -134,6 +134,7 @@ jobs:
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-keymap-layer-expansion.patch"
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-keyboard-notify-retry.patch"
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-split-input-stability.patch"
+          git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-sleep-off-idle.patch"
           git -C zmk apply "${GITHUB_WORKSPACE}/patches/zmk-studio-ble-connection-lifetime.patch"
           git -C modules/zmk-pmw3610-driver apply --reverse --check "${GITHUB_WORKSPACE}/patches/pmw3610-battery-report-rate.patch" 2>/dev/null || git -C modules/zmk-pmw3610-driver apply "${GITHUB_WORKSPACE}/patches/pmw3610-battery-report-rate.patch"
           studio_messages_dir="${base_dir}/modules/msgs/zmk-studio-messages"
