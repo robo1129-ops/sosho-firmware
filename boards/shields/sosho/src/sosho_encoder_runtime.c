@@ -60,15 +60,16 @@ static void initialize_defaults(void) {
 
 static int settings_set(const char *name, size_t len_rd, settings_read_cb read_cb, void *cb_arg) {
     initialize_defaults();
-    if (strcmp(name, "encoder_bindings") != 0 || len_rd > sizeof(persisted) ||
+    if ((name != NULL && name[0] != '\0') || len_rd > sizeof(persisted) ||
         len_rd % sizeof(persisted[0]) != 0U) {
         return -ENOENT;
     }
 
-    return read_cb(cb_arg, persisted, len_rd) < 0 ? -EINVAL : 0;
+    int read = read_cb(cb_arg, persisted, len_rd);
+    return read == (int)len_rd ? 0 : -EINVAL;
 }
 
-SETTINGS_STATIC_HANDLER_DEFINE(sosho_encoder_runtime, "sosho_runtime", NULL, settings_set, NULL,
+SETTINGS_STATIC_HANDLER_DEFINE(sosho_encoder_runtime, "sosho_runtime/encoder_bindings", NULL, settings_set, NULL,
                                NULL);
 
 static int resolve_persisted(uint32_t layer_id, uint32_t sensor, uint32_t direction,
@@ -80,6 +81,11 @@ static int resolve_persisted(uint32_t layer_id, uint32_t sensor, uint32_t direct
 
     initialize_defaults();
     size_t index = binding_index(layer_id, sensor, direction);
+    /* Unconfigured layers inherit the base assignment instead of silently
+     * replacing it with the compiled wheel default after a layer switch. */
+    if (!persisted[index].valid && layer_id != 0U) {
+        index = binding_index(0U, sensor, direction);
+    }
     if (!persisted[index].valid) {
         *binding = default_binding(sensor, direction);
         return 0;
@@ -163,6 +169,8 @@ int sosho_encoder_set(const struct sosho_encoder_rpc_binding *bindings, size_t c
     }
 
     initialize_defaults();
+    struct sosho_encoder_persisted_binding candidate[SOSHO_ENCODER_PERSISTED_COUNT];
+    memcpy(candidate, persisted, sizeof(candidate));
     for (size_t i = 0U; i < count; i++) {
         const struct sosho_encoder_rpc_binding *input = &bindings[i];
         if (input->layer_id >= ZMK_KEYMAP_LAYERS_LEN || input->sensor >= SOSHO_ENCODER_SENSOR_COUNT ||
@@ -178,14 +186,18 @@ int sosho_encoder_set(const struct sosho_encoder_rpc_binding *bindings, size_t c
         }
 
         struct sosho_encoder_persisted_binding *target =
-            &persisted[binding_index(input->layer_id, input->sensor, input->direction)];
+            &candidate[binding_index(input->layer_id, input->sensor, input->direction)];
         target->behavior_id = (uint16_t)input->behavior_id;
         target->param1 = input->param1;
         target->param2 = input->param2;
         target->valid = 1U;
     }
 
-    return settings_save_one("sosho_runtime/encoder_bindings", persisted, sizeof(persisted));
+    int err = settings_save_one("sosho_runtime/encoder_bindings", candidate, sizeof(candidate));
+    if (err == 0) {
+        memcpy(persisted, candidate, sizeof(persisted));
+    }
+    return err;
 #endif
 }
 
