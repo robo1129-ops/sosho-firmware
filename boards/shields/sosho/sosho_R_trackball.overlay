@@ -6,7 +6,12 @@
  * The input processors are source-verified ZMK pointing processors.
  */
 &spi1 { status = "okay"; };
-&trackball { status = "okay"; };
+&trackball {
+    status = "okay";
+    /* Keep RUN mode until the 30-minute ZMK idle transition. Without this,
+     * the sensor's independent downshift timer enters REST after 128 ms. */
+    force-awake;
+};
 
 /* The XIAO board definition also creates a console CDC-ACM port. Keep only
  * the Studio RPC CDC-ACM endpoint on the central so Web Serial cannot select
